@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { Label } from './ui/label';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { slugify } from '@/lib/utils';
 import { Card, CardContent } from './ui/card';
 import {
@@ -20,6 +20,7 @@ import {
   AccordionTrigger,
 } from './ui/accordion';
 import { Checkbox } from './ui/checkbox';
+import { Separator } from './ui/separator';
 
 const difficulties = ['Easy', 'Medium', 'Hard'];
 
@@ -41,17 +42,55 @@ export default function TopicSelection({
   const [selectedSubTopics, setSelectedSubTopics] = useState<
     Record<string, boolean>
   >({});
+  const [globalDifficulty, setGlobalDifficulty] = useState<string>('');
+  const [isAllSelected, setIsAllSelected] = useState(false);
+
+  const allSubtopics = Object.values(topics).flat();
+
+  useEffect(() => {
+    const allSelected =
+      allSubtopics.length > 0 &&
+      allSubtopics.every(subTopic => selectedSubTopics[subTopic]);
+    setIsAllSelected(allSelected);
+  }, [selectedSubTopics, allSubtopics]);
+
+  const handleSelectAll = (isSelected: boolean) => {
+    setIsAllSelected(isSelected);
+    const newSelectedSubTopics: Record<string, boolean> = {};
+    const newTopicDifficulties: Record<string, string> = {};
+
+    if (isSelected) {
+      allSubtopics.forEach(subTopic => {
+        newSelectedSubTopics[subTopic] = true;
+        newTopicDifficulties[subTopic] =
+          topicDifficulties[subTopic] || globalDifficulty || 'Medium';
+      });
+    }
+    // When deselecting, both selected topics and their difficulties are cleared
+    setSelectedSubTopics(newSelectedSubTopics);
+    setTopicDifficulties(newTopicDifficulties);
+  };
+
+  const handleGlobalDifficultyChange = (difficulty: string) => {
+    if (!difficulty) return;
+    setGlobalDifficulty(difficulty);
+    const newTopicDifficulties = { ...topicDifficulties };
+    Object.keys(selectedSubTopics).forEach(subTopic => {
+      if (selectedSubTopics[subTopic]) {
+        newTopicDifficulties[subTopic] = difficulty;
+      }
+    });
+    setTopicDifficulties(newTopicDifficulties);
+  };
 
   const handleDifficultyChange = (
     subTopic: string,
     difficulty: string | null
   ) => {
-    // When a difficulty is selected, mark the sub-topic as selected
     if (difficulty) {
       setSelectedSubTopics(prev => ({ ...prev, [subTopic]: true }));
       setTopicDifficulties(prev => ({ ...prev, [subTopic]: difficulty }));
     } else {
-      // If difficulty is cleared, unselect the sub-topic
       const newDifficulties = { ...topicDifficulties };
       delete newDifficulties[subTopic];
       setTopicDifficulties(newDifficulties);
@@ -63,25 +102,25 @@ export default function TopicSelection({
     isSelected: boolean
   ) => {
     setSelectedSubTopics(prev => ({ ...prev, [subTopic]: isSelected }));
-    // If a sub-topic is deselected, also remove its difficulty setting
     if (!isSelected) {
       const newDifficulties = { ...topicDifficulties };
       delete newDifficulties[subTopic];
       setTopicDifficulties(newDifficulties);
     } else if (!topicDifficulties[subTopic]) {
-      // If a sub-topic is selected and has no difficulty, default to Medium
-      setTopicDifficulties(prev => ({...prev, [subTopic]: 'Medium'}));
+      setTopicDifficulties(prev => ({
+        ...prev,
+        [subTopic]: globalDifficulty || 'Medium',
+      }));
     }
   };
 
   const handleStartInterview = () => {
-    // Filter for topics that are selected and have a difficulty set.
     const selectedTopics = Object.entries(topicDifficulties).filter(
       ([topic]) => selectedSubTopics[topic]
     );
 
     if (selectedTopics.length === 0) {
-      console.log('Please select at least one sub-topic.');
+      // This should be handled by the disabled button, but as a fallback
       return;
     }
 
@@ -103,9 +142,45 @@ export default function TopicSelection({
   return (
     <Card className="mt-8 w-full max-w-2xl">
       <CardContent className="p-6">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center justify-between p-4 mb-6 bg-secondary rounded-lg">
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="select-all"
+              checked={isAllSelected}
+              onCheckedChange={checked => handleSelectAll(!!checked)}
+            />
+            <Label htmlFor="select-all" className="text-base font-semibold">
+              Select All Topics
+            </Label>
+          </div>
+          <div className="w-full sm:w-auto">
+            <Label htmlFor="global-difficulty" className="sr-only">
+              Set All Difficulties
+            </Label>
+            <Select onValueChange={handleGlobalDifficultyChange}>
+              <SelectTrigger
+                id="global-difficulty"
+                className="w-full sm:w-[180px]"
+              >
+                <SelectValue placeholder="Set All Difficulties" />
+              </SelectTrigger>
+              <SelectContent>
+                {difficulties.map(difficulty => (
+                  <SelectItem key={difficulty} value={difficulty}>
+                    {difficulty}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <Accordion type="multiple" className="w-full space-y-4">
           {Object.entries(topics).map(([mainTopic, subTopics]) => (
-            <AccordionItem value={mainTopic} key={mainTopic} className="border rounded-lg px-4">
+            <AccordionItem
+              value={mainTopic}
+              key={mainTopic}
+              className="border rounded-lg px-4"
+            >
               <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                 {mainTopic}
               </AccordionTrigger>
@@ -118,14 +193,14 @@ export default function TopicSelection({
                     >
                       <div className="flex items-center gap-3">
                         <Checkbox
-                          id={`checkbox-${subTopic}`}
+                          id={`checkbox-${slugify(subTopic)}`}
                           checked={!!selectedSubTopics[subTopic]}
                           onCheckedChange={checked =>
                             handleSubTopicSelectionChange(subTopic, !!checked)
                           }
                         />
                         <Label
-                          htmlFor={`checkbox-${subTopic}`}
+                          htmlFor={`checkbox-${slugify(subTopic)}`}
                           className="text-base font-medium"
                         >
                           {subTopic}
@@ -140,7 +215,7 @@ export default function TopicSelection({
                       >
                         <SelectTrigger
                           className="w-full sm:w-[180px]"
-                          id={`difficulty-${subTopic}`}
+                          id={`difficulty-${slugify(subTopic)}`}
                         >
                           <SelectValue placeholder="Select difficulty" />
                         </SelectTrigger>
