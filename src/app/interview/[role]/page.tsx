@@ -4,7 +4,7 @@ import TopicSelection from '@/components/topic-selection';
 
 const topicsByRole: Record<string, Record<string, string[]>> = {
   'software-engineer': {
-    'Data Structures': [
+    'Data Structures & Algorithms': [
       'Arrays & Strings',
       'Linked Lists',
       'Stacks & Queues',
@@ -12,8 +12,6 @@ const topicsByRole: Record<string, Record<string, string[]>> = {
       'Trees (Binary, BST, Trie)',
       'Graphs (BFS, DFS, Dijkstra)',
       'Hash Maps / Hash Sets',
-    ],
-    'Algorithms': [
       'Sliding Window Technique',
       'Two Pointer Technique',
       'Recursion & Backtracking',
@@ -22,23 +20,22 @@ const topicsByRole: Record<string, Record<string, string[]>> = {
       'Bit Manipulation',
       'Time and Space Complexity',
     ],
-    'System Design': [
-      'Low-Level Design (OOD)',
-      'High-Level Design',
+    'Software Design & Architecture': [
+      'Object-Oriented Programming (OOP)',
+      'Design Patterns (Singleton, Factory, Observer)',
+      'Low-Level Design (Class Design)',
+      'High-Level Design (System Design)',
       'RESTful API Design',
-      'Caching Strategies',
-      'Load Balancing',
-      'Scalability (Horizontal vs Vertical)',
       'Microservices vs Monolithic',
-      'CAP Theorem',
-      'Message Queues (Kafka, RabbitMQ)',
     ],
     'Databases': [
-      'SQL Queries (Joins, Aggregates)',
+      'SQL Queries (Joins, Aggregates, Subqueries)',
+      'Window Functions',
       'Database Design (Schema, ER Models)',
       'Indexing and Query Optimization',
       'Transactions and ACID Properties',
       'NoSQL Databases',
+      'CAP Theorem',
     ],
     'Operating Systems & Networking': [
       'Processes vs Threads',
@@ -52,16 +49,19 @@ const topicsByRole: Record<string, Record<string, string[]>> = {
       'Hashing and Encryption',
       'Common Vulnerabilities (SQL Injection, XSS)',
     ],
-    'Software Development Lifecycle': [
+    'Software Development Lifecycle & DevOps': [
       'Git and Version Control',
       'CI/CD Basics',
       'Docker and Containerization',
       'Agile Methodologies',
+      'Monitoring & Logging',
+      'Cloud Basics (AWS, GCP, Azure)',
     ],
     'Behavioral': [
       'STAR Method',
       'Teamwork and Conflict Resolution',
       'Motivation and Career Goals',
+      'Handling Failure',
     ],
   },
   'product-manager': {
@@ -150,9 +150,52 @@ const topicsByRole: Record<string, Record<string, string[]>> = {
     ],
   },
   'ux-designer': {
-    'Design Process': ['User Research', 'Wireframing & Prototyping', 'Usability Testing'],
-    'Collaboration': ['Working with PMs', 'Working with Engineers'],
-    'Portfolio Review': ['Case Study Walkthrough', 'Design Rationale'],
+    'UX Research & Strategy': [
+      'User Research Fundamentals',
+      'User Interviews & Surveys',
+      'Persona Creation & Empathy Mapping',
+      'Journey Mapping & Task Analysis',
+      'Problem Framing & Competitive Analysis',
+      'Heuristic Evaluation & Usability Testing',
+      'A/B Testing',
+      'Information Architecture (IA)',
+    ],
+    'Design, Prototyping & Visuals': [
+      'Wireframing (Low to High Fidelity)',
+      'Prototyping (Clickable Prototypes)',
+      'Design Tools (Figma, Sketch, XD)',
+      'Interaction Design Principles',
+      'Visual Design (Color, Typography, Layout)',
+      'UI Design Patterns',
+      'Responsive & Mobile-First Design',
+      'Microinteractions & Animations',
+    ],
+    'Design Systems & Principles': [
+      'Design Systems & Component Libraries',
+      'Atomic Design',
+      'Human-Centered Design (HCD)',
+      'Design Thinking Process',
+      'Inclusive Design & Accessibility (WCAG)',
+      'Ethical UX & Dark Patterns',
+      'UX Laws (Hick’s, Fitts’s, etc.)',
+    ],
+    'Collaboration & Communication': [
+      'Working with PMs & Engineers',
+      'Agile/Scrum Team Collaboration',
+      'Conducting Design Critiques',
+      'Giving & Receiving Feedback',
+      'Presenting Design Work & Storytelling',
+      'Stakeholder Management',
+      'Developer Handoffs (Specs, Assets)',
+    ],
+    'Portfolio & Interviewing': [
+      'Portfolio Walkthrough & Case Studies',
+      'Whiteboard Challenges',
+      'App Redesign Critique',
+      'Behavioral Questions (STAR Method)',
+      'Design Philosophy',
+      'Career Motivation ("Why UX?")',
+    ],
   },
   'data-analyst': {
     'SQL': ['Joins', 'Window Functions', 'Subqueries'],
