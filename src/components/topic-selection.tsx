@@ -20,7 +20,6 @@ import {
   AccordionTrigger,
 } from './ui/accordion';
 import { Checkbox } from './ui/checkbox';
-import { Separator } from './ui/separator';
 
 const difficulties = ['Easy', 'Medium', 'Hard'];
 
@@ -70,6 +69,25 @@ export default function TopicSelection({
     setSelectedSubTopics(newSelectedSubTopics);
     setTopicDifficulties(newTopicDifficulties);
   };
+  
+  const handleMainTopicSelectionChange = (mainTopic: string, isSelected: boolean) => {
+    const subTopics = topics[mainTopic];
+    const newSelectedSubTopics = { ...selectedSubTopics };
+    const newTopicDifficulties = { ...topicDifficulties };
+
+    subTopics.forEach(subTopic => {
+      newSelectedSubTopics[subTopic] = isSelected;
+      if (isSelected) {
+        newTopicDifficulties[subTopic] = topicDifficulties[subTopic] || globalDifficulty || 'Medium';
+      } else {
+        delete newTopicDifficulties[subTopic];
+      }
+    });
+
+    setSelectedSubTopics(newSelectedSubTopics);
+    setTopicDifficulties(newTopicDifficulties);
+  };
+
 
   const handleGlobalDifficultyChange = (difficulty: string) => {
     if (!difficulty) return;
@@ -175,64 +193,78 @@ export default function TopicSelection({
           </div>
         </div>
         <Accordion type="multiple" className="w-full space-y-4">
-          {Object.entries(topics).map(([mainTopic, subTopics]) => (
-            <AccordionItem
-              value={mainTopic}
-              key={mainTopic}
-              className="border rounded-lg px-4"
-            >
-              <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-                {mainTopic}
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-6 pt-4">
-                  {subTopics.map(subTopic => (
-                    <div
-                      key={subTopic}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          id={`checkbox-${slugify(subTopic)}`}
-                          checked={!!selectedSubTopics[subTopic]}
-                          onCheckedChange={checked =>
-                            handleSubTopicSelectionChange(subTopic, !!checked)
-                          }
-                        />
-                        <Label
-                          htmlFor={`checkbox-${slugify(subTopic)}`}
-                          className="text-base font-medium"
-                        >
-                          {subTopic}
-                        </Label>
-                      </div>
-                      <Select
-                        value={topicDifficulties[subTopic] || ''}
-                        onValueChange={value =>
-                          handleDifficultyChange(subTopic, value)
-                        }
-                        disabled={!selectedSubTopics[subTopic]}
-                      >
-                        <SelectTrigger
-                          className="w-full sm:w-[180px]"
-                          id={`difficulty-${slugify(subTopic)}`}
-                        >
-                          <SelectValue placeholder="Select difficulty" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {difficulties.map(difficulty => (
-                            <SelectItem key={difficulty} value={difficulty}>
-                              {difficulty}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
+          {Object.entries(topics).map(([mainTopic, subTopics]) => {
+            const areAllSubTopicsSelected = subTopics.every(st => selectedSubTopics[st]);
+            const areSomeSubTopicsSelected = subTopics.some(st => selectedSubTopics[st]) && !areAllSubTopicsSelected;
+            
+            return (
+              <AccordionItem
+                value={mainTopic}
+                key={mainTopic}
+                className="border rounded-lg px-4"
+              >
+                 <div className="flex items-center">
+                  <Checkbox
+                    id={`checkbox-main-${slugify(mainTopic)}`}
+                    checked={areAllSubTopicsSelected}
+                    aria-label={`Select all ${mainTopic}`}
+                    onCheckedChange={(checked) => handleMainTopicSelectionChange(mainTopic, !!checked)}
+                    className="mr-3"
+                  />
+                  <AccordionTrigger className="text-lg font-semibold hover:no-underline flex-1">
+                    {mainTopic}
+                  </AccordionTrigger>
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+                <AccordionContent>
+                  <div className="space-y-6 pt-4">
+                    {subTopics.map(subTopic => (
+                      <div
+                        key={subTopic}
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id={`checkbox-${slugify(subTopic)}`}
+                            checked={!!selectedSubTopics[subTopic]}
+                            onCheckedChange={checked =>
+                              handleSubTopicSelectionChange(subTopic, !!checked)
+                            }
+                          />
+                          <Label
+                            htmlFor={`checkbox-${slugify(subTopic)}`}
+                            className="text-base font-medium"
+                          >
+                            {subTopic}
+                          </Label>
+                        </div>
+                        <Select
+                          value={topicDifficulties[subTopic] || ''}
+                          onValueChange={value =>
+                            handleDifficultyChange(subTopic, value)
+                          }
+                          disabled={!selectedSubTopics[subTopic]}
+                        >
+                          <SelectTrigger
+                            className="w-full sm:w-[180px]"
+                            id={`difficulty-${slugify(subTopic)}`}
+                          >
+                            <SelectValue placeholder="Select difficulty" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {difficulties.map(difficulty => (
+                              <SelectItem key={difficulty} value={difficulty}>
+                                {difficulty}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
         </Accordion>
         <Button
           onClick={handleStartInterview}
