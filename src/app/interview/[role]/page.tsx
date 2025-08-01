@@ -4,9 +4,63 @@ import TopicSelection from '@/components/topic-selection';
 
 const topicsByRole: Record<string, Record<string, string[]>> = {
   'software-engineer': {
-    'Data Structures': ['Arrays & Strings', 'Linked Lists', 'Trees', 'Graphs', 'Hash Tables'],
-    'Algorithms': ['Sorting & Searching', 'Recursion', 'Dynamic Programming'],
-    'System Design': ['Scalability', 'Databases', 'API Design'],
+    'Data Structures': [
+      'Arrays & Strings',
+      'Linked Lists',
+      'Stacks & Queues',
+      'Heaps / Priority Queues',
+      'Trees (Binary, BST, Trie)',
+      'Graphs (BFS, DFS, Dijkstra)',
+      'Hash Maps / Hash Sets',
+    ],
+    'Algorithms': [
+      'Sliding Window Technique',
+      'Two Pointer Technique',
+      'Recursion & Backtracking',
+      'Dynamic Programming',
+      'Greedy Algorithms',
+      'Bit Manipulation',
+      'Time and Space Complexity',
+    ],
+    'System Design': [
+      'Low-Level Design (OOD)',
+      'High-Level Design',
+      'RESTful API Design',
+      'Caching Strategies',
+      'Load Balancing',
+      'Scalability (Horizontal vs Vertical)',
+      'Microservices vs Monolithic',
+    ],
+    'Databases': [
+      'SQL Queries (Joins, Aggregates)',
+      'Database Design (Schema, ER Models)',
+      'Indexing and Query Optimization',
+      'Transactions and ACID Properties',
+      'NoSQL Databases',
+    ],
+    'Operating Systems & Networking': [
+      'Processes vs Threads',
+      'Deadlocks and Race Conditions',
+      'Memory Management (Stack vs Heap)',
+      'Networking Basics (TCP/IP, OSI Model)',
+      'HTTP, HTTPS, and WebSockets',
+    ],
+    'Security': [
+      'Authentication vs Authorization (OAuth, JWT)',
+      'Hashing and Encryption',
+      'Common Vulnerabilities (SQL Injection, XSS)',
+    ],
+    'Software Development Lifecycle': [
+      'Git and Version Control',
+      'CI/CD Basics',
+      'Docker and Containerization',
+      'Agile Methodologies',
+    ],
+    'Behavioral': [
+      'STAR Method',
+      'Teamwork and Conflict Resolution',
+      'Motivation and Career Goals',
+    ],
   },
   'product-manager': {
     'Product Strategy': ['Market Analysis', 'Roadmapping', 'Competitive Analysis'],
