@@ -6,6 +6,7 @@ import { Button } from './ui/button';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -39,6 +40,7 @@ export function Header() {
         </h1>
       </Link>
       <div className="flex items-center gap-2">
+         <ThemeToggle />
         {user ? (
           <>
             <Button asChild>
