@@ -2,11 +2,27 @@ import { Header } from '@/components/header';
 import { unslugify } from '@/lib/utils';
 import TopicSelection from '@/components/topic-selection';
 
-const topicsByRole: Record<string, string[]> = {
-  'software-engineer': ['Data Structures', 'Algorithms', 'System Design'],
-  'product-manager': ['Product Strategy', 'Prioritization', 'Execution'],
-  'ux-designer': ['Design Process', 'Collaboration', 'Portfolio Review'],
-  'data-analyst': ['SQL', 'Statistics', 'Data Visualization'],
+const topicsByRole: Record<string, Record<string, string[]>> = {
+  'software-engineer': {
+    'Data Structures': ['Arrays & Strings', 'Linked Lists', 'Trees', 'Graphs', 'Hash Tables'],
+    'Algorithms': ['Sorting & Searching', 'Recursion', 'Dynamic Programming'],
+    'System Design': ['Scalability', 'Databases', 'API Design'],
+  },
+  'product-manager': {
+    'Product Strategy': ['Market Analysis', 'Roadmapping', 'Competitive Analysis'],
+    'Prioritization': ['Frameworks (RICE, MoSCoW)', 'Stakeholder Management'],
+    'Execution': ['Go-to-Market Strategy', 'Metrics & KPIs'],
+  },
+  'ux-designer': {
+    'Design Process': ['User Research', 'Wireframing & Prototyping', 'Usability Testing'],
+    'Collaboration': ['Working with PMs', 'Working with Engineers'],
+    'Portfolio Review': ['Case Study Walkthrough', 'Design Rationale'],
+  },
+  'data-analyst': {
+    'SQL': ['Joins', 'Window Functions', 'Subqueries'],
+    'Statistics': ['Probability', 'A/B Testing', 'Regression'],
+    'Data Visualization': ['Dashboard Design', 'Storytelling with Data'],
+  },
 };
 
 export default function RoleTopicsPage({
@@ -15,7 +31,7 @@ export default function RoleTopicsPage({
   params: { role: string };
 }) {
   const roleName = unslugify(params.role);
-  const topics = topicsByRole[params.role] || [];
+  const topics = topicsByRole[params.role] || {};
   return (
     <div className="flex flex-col h-screen">
       <Header />
