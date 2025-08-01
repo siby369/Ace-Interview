@@ -1,10 +1,11 @@
 'use client';
 
 import { provideAnswerFeedback, type ProvideAnswerFeedbackOutput } from '@/ai/flows/provide-answer-feedback';
+import { transcribeAudio } from '@/ai/flows/transcribe-audio';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, ArrowRight, LoaderCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, LoaderCircle, Mic, MicOff, Sparkles, Square } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FeedbackDisplay } from './feedback-display';
@@ -13,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Progress } from './ui/progress';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 const answerSchema = z.object({
   answer: z.string().min(20, 'Your answer should be at least 20 characters long.'),
@@ -30,6 +32,13 @@ export function InterviewClientView({ initialQuestions, role }: InterviewClientV
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [feedback, setFeedback] = useState<ProvideAnswerFeedbackOutput | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
+  // Voice recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const form = useForm<z.infer<typeof answerSchema>>({
     resolver: zodResolver(answerSchema),
@@ -37,6 +46,93 @@ export function InterviewClientView({ initialQuestions, role }: InterviewClientV
       answer: '',
     },
   });
+
+  useEffect(() => {
+    async function getMicPermission() {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        setHasMicPermission(true);
+      } catch (error) {
+        console.error('Microphone access denied:', error);
+        setHasMicPermission(false);
+      }
+    }
+    getMicPermission();
+  }, []);
+
+  const startRecording = async () => {
+    if (hasMicPermission === false) {
+      toast({
+        title: 'Microphone Required',
+        description: 'Please grant microphone access in your browser settings to record your answer.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64Audio = reader.result as string;
+          setIsTranscribing(true);
+          try {
+            const { text } = await transcribeAudio({ audioDataUri: base64Audio });
+            form.setValue('answer', text);
+            // Automatically submit for feedback after transcription
+            await getFeedbackAction({ answer: text });
+          } catch (error) {
+            console.error('Transcription failed', error);
+            toast({
+              title: 'Transcription Failed',
+              description: 'Could not transcribe your audio. Please try again or type your answer.',
+              variant: 'destructive',
+            });
+          } finally {
+            setIsTranscribing(false);
+          }
+        };
+        // Stop all media tracks to turn off the mic indicator
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Could not start recording:', error);
+      toast({
+        title: 'Recording Error',
+        description: 'Could not start recording. Please check your microphone.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+
+  const handleMicButtonClick = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
   async function getFeedbackAction(data: z.infer<typeof answerSchema>) {
     setIsSubmitting(true);
@@ -48,6 +144,7 @@ export function InterviewClientView({ initialQuestions, role }: InterviewClientV
         userAnswer: data.answer,
       });
       setFeedback(result);
+      form.setValue('answer', data.answer);
     } catch (error) {
       console.error('Failed to get feedback', error);
       toast({
@@ -57,6 +154,7 @@ export function InterviewClientView({ initialQuestions, role }: InterviewClientV
       });
     } finally {
       setIsSubmitting(false);
+      setIsTranscribing(false);
     }
   }
 
@@ -70,6 +168,8 @@ export function InterviewClientView({ initialQuestions, role }: InterviewClientV
 
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const isInterviewFinished = isLastQuestion && feedback;
+  
+  const isLoading = isSubmitting || isTranscribing;
 
   return (
     <main className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
@@ -88,7 +188,17 @@ export function InterviewClientView({ initialQuestions, role }: InterviewClientV
         </div>
 
         <div className="flex-1 flex flex-col">
-          {!feedback && !isSubmitting && (
+          {!feedback && !isLoading && (
+            <>
+            {hasMicPermission === false && (
+              <Alert variant="destructive" className="mb-4">
+                <MicOff className="h-4 w-4" />
+                <AlertTitle>Microphone Access Denied</AlertTitle>
+                <AlertDescription>
+                  To use voice recording, please enable microphone permissions in your browser settings and refresh the page. You can still type your answer below.
+                </AlertDescription>
+              </Alert>
+            )}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(getFeedbackAction)} className="space-y-6 flex flex-col flex-1">
                 <FormField
@@ -99,7 +209,7 @@ export function InterviewClientView({ initialQuestions, role }: InterviewClientV
                       <FormLabel className="sr-only">Your Answer</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Type your answer here..."
+                          placeholder="Type your answer here, or use the microphone to record it."
                           className="flex-1 resize-none text-base p-4"
                           {...field}
                         />
@@ -108,23 +218,32 @@ export function InterviewClientView({ initialQuestions, role }: InterviewClientV
                     </FormItem>
                   )}
                 />
-                <Button type="submit" size="lg" disabled={isSubmitting}>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Submit Answer for Feedback
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button type="button" size="lg" onClick={handleMicButtonClick} disabled={hasMicPermission === null || isLoading} className="flex-1">
+                    {isRecording ? <Square className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                    {isRecording ? 'Stop Recording' : 'Record Answer'}
+                  </Button>
+                  <Button type="submit" size="lg" disabled={isLoading} className="flex-1">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Submit for Feedback
+                  </Button>
+                </div>
               </form>
             </Form>
+            </>
           )}
 
-          {isSubmitting && (
+          {isLoading && (
             <div className="w-full flex-1 flex flex-col items-center justify-center text-center gap-4 p-8 rounded-lg border border-dashed">
               <LoaderCircle className="h-12 w-12 animate-spin text-primary" />
-              <h3 className="text-xl font-semibold font-headline">Analyzing your answer...</h3>
-              <p className="text-muted-foreground">The AI is preparing your feedback. This won't take long.</p>
+              <h3 className="text-xl font-semibold font-headline">
+                {isTranscribing ? 'Transcribing your voice...' : 'Analyzing your answer...'}
+              </h3>
+              <p className="text-muted-foreground">The AI is working its magic. This won't take long.</p>
             </div>
           )}
 
-          {feedback && (
+          {feedback && !isLoading && (
             <div className="flex flex-col gap-6 animate-in fade-in-50 duration-500">
               <FeedbackDisplay feedback={feedback} />
               <div className="flex justify-between items-center">
