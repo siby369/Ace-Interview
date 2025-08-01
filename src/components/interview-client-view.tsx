@@ -17,11 +17,9 @@ import { Progress } from './ui/progress';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Input } from './ui/input';
 
 const answerSchema = z.object({
   answer: z.string().min(1, 'Please provide an answer.'),
-  typedAnswer: z.string().optional(),
 });
 
 interface InterviewClientViewProps {
@@ -51,7 +49,6 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
     resolver: zodResolver(answerSchema),
     defaultValues: {
       answer: '',
-      typedAnswer: '',
     },
   });
 
@@ -126,9 +123,8 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
           setIsTranscribing(true);
           try {
             const { text } = await transcribeAudio({ audioDataUri: base64Audio });
-            form.setValue('answer', text);
-            // Automatically submit for feedback after transcription
-            await getFeedbackAction({ answer: text, typedAnswer: form.getValues('typedAnswer') });
+            const currentAnswer = form.getValues('answer');
+            form.setValue('answer', (currentAnswer ? currentAnswer + '\n' : '') + text);
           } catch (error) {
             console.error('Transcription failed', error);
             toast({
@@ -173,20 +169,14 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
   async function getFeedbackAction(data: z.infer<typeof answerSchema>) {
     setIsSubmitting(true);
     setFeedback(null);
-
-    let fullAnswer = data.answer;
-    if (currentQuestion.requiresTyping && data.typedAnswer) {
-      fullAnswer += `\n\nHere is my code:\n\n${data.typedAnswer}`;
-    }
     
     try {
       const result = await provideAnswerFeedback({
         jobRole: role,
         interviewQuestion: currentQuestion.question,
-        userAnswer: fullAnswer,
+        userAnswer: data.answer,
       });
       setFeedback(result);
-      form.setValue('answer', data.answer);
     } catch (error) {
       console.error('Failed to get feedback', error);
       toast({
@@ -254,45 +244,51 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
             )}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(getFeedbackAction)} className="space-y-6 flex flex-col flex-1">
-                 {currentQuestion.requiresTyping ? (
-                    <FormField
-                      control={form.control}
-                      name="typedAnswer"
-                      render={({ field }) => (
-                        <FormItem className="flex-1 flex flex-col">
-                          <FormLabel>Your Code/Algorithm</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Write your code or algorithm steps here."
-                              className="flex-1 resize-none text-base p-4 font-mono"
-                              {...field}
-                            />
-                          </FormControl>
-                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  ) : <div className='flex-1'/>}
-                  
-                  <FormField control={form.control} name="answer" render={({ field }) => (
-                    <FormItem className='hidden'>
+                <FormField
+                  control={form.control}
+                  name="answer"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 flex flex-col">
+                      <FormLabel>
+                        {currentQuestion.requiresTyping
+                          ? 'Your Answer & Code'
+                          : 'Your Answer'}
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Textarea
+                          placeholder={
+                            currentQuestion.requiresTyping
+                              ? 'Explain your approach and then write your code here...'
+                              : 'Speak or type your answer here...'
+                          }
+                          className="flex-1 resize-none text-base p-4"
+                          {...field}
+                        />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
-                  )} />
+                  )}
+                />
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button type="button" size="lg" onClick={handleMicButtonClick} disabled={hasMicPermission === null || isLoading} className="flex-1">
-                    {isRecording ? <Square className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                    {isRecording ? 'Stop & Submit' : 'Record Answer'}
+                  <Button
+                    type="button"
+                    variant={isRecording ? 'destructive' : 'outline'}
+                    size="lg"
+                    onClick={handleMicButtonClick}
+                    disabled={hasMicPermission === null || isLoading}
+                  >
+                    {isRecording ? (
+                      <Square className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Mic className="mr-2 h-4 w-4" />
+                    )}
+                    {isRecording ? 'Stop Recording' : 'Record Answer'}
                   </Button>
-                  {currentQuestion.requiresTyping && (
-                     <Button type="submit" size="lg" disabled={isLoading} className="flex-1">
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Submit for Feedback
-                      </Button>
-                  )}
+                  <Button type="submit" size="lg" disabled={isLoading} className="flex-1">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Submit for Feedback
+                  </Button>
                 </div>
               </form>
             </Form>
