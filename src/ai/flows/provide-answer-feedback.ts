@@ -25,6 +25,16 @@ const ProvideAnswerFeedbackOutputSchema = z.object({
   strengths: z.string().describe('The strengths of the answer.'),
   weaknesses: z.string().describe('The weaknesses of the answer.'),
   overallScore: z.number().describe('An overall score for the answer (0-100).'),
+  languageAnalysis: z
+    .string()
+    .describe(
+      'Analysis of the language used, including clarity, tone, and filler words.'
+    ),
+  answerStructure: z
+    .string()
+    .describe(
+      'Analysis of the answer structure, like using the STAR method, relevance, and depth.'
+    ),
 });
 export type ProvideAnswerFeedbackOutput = z.infer<typeof ProvideAnswerFeedbackOutputSchema>;
 
@@ -42,8 +52,12 @@ const provideAnswerFeedbackPrompt = ai.definePrompt({
   Interview Question: {{{interviewQuestion}}}
   User's Answer: {{{userAnswer}}}
 
-  Provide constructive feedback on the user's answer, including strengths, weaknesses, and an overall score (0-100).
-  Format the response as a JSON object with 'feedback', 'strengths', 'weaknesses', and 'overallScore' fields.`,
+  Provide constructive feedback on the user's answer. Include the following:
+  - Strengths and weaknesses.
+  - An overall score (0-100).
+  - An analysis of the language used (clarity, tone, filler words).
+  - An analysis of the answer structure (e.g. STAR method, relevance, depth).
+  `,
 });
 
 const provideAnswerFeedbackFlow = ai.defineFlow(
