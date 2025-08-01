@@ -5,9 +5,11 @@ import TopicSelection from '@/components/topic-selection';
 const topicsByRole: Record<string, Record<string, string[]>> = {
   'software-engineer': {
     'Data Structures & Algorithms': [
-      'Arrays & Strings',
+      'Arrays',
+      'Strings',
       'Linked Lists',
-      'Stacks & Queues',
+      'Stacks',
+      'Queues',
       'Heaps / Priority Queues',
       'Trees (Binary, BST, Trie)',
       'Graphs (BFS, DFS, Dijkstra)',
@@ -198,9 +200,126 @@ const topicsByRole: Record<string, Record<string, string[]>> = {
     ],
   },
   'data-analyst': {
-    'SQL': ['Joins', 'Window Functions', 'Subqueries'],
-    'Statistics': ['Probability', 'A/B Testing', 'Regression'],
-    'Data Visualization': ['Dashboard Design', 'Storytelling with Data'],
+    'Core Data Skills': [
+        'Data Cleaning & Preprocessing',
+        'Data Wrangling',
+        'Handling Missing or Duplicate Data',
+        'Data Types & Structures',
+        'Data Normalization & Standardization',
+        'Exploratory Data Analysis (EDA)',
+        'Outlier Detection & Handling',
+        'Data Aggregation',
+        'Data Validation'
+    ],
+    'SQL & Databases': [
+        'SELECT, WHERE, GROUP BY, ORDER BY',
+        'JOINs (INNER, LEFT, RIGHT, FULL)',
+        'Subqueries and CTEs',
+        'Window Functions (ROW_NUMBER, RANK, LEAD/LAG)',
+        'Aggregation Functions (SUM, AVG, COUNT)',
+        'CASE Statements',
+        'Indexes and Query Optimization',
+        'UNION vs UNION ALL',
+        'Nested Queries',
+        'Working with Relational Databases',
+        'Data Modeling Basics'
+    ],
+    'Data Visualization': [
+        'Charts (Bar, Line, Pie, Area, Scatter, Histogram)',
+        'Dashboards',
+        'Choosing the Right Chart',
+        'Storytelling with Data',
+        'DataViz Tools (Tableau, Power BI, Looker)',
+        'Basic Interactivity (filters, slicers)',
+        'Visual Best Practices',
+        'Creating Reports for Business Users',
+        'Time-Series Visualizations',
+        'Geospatial Charts (Maps)'
+    ],
+    'Statistics & Probability': [
+        'Mean, Median, Mode, Standard Deviation',
+        'Distribution Types (Normal, Skewed)',
+        'Hypothesis Testing (p-values, z-test, t-test)',
+        'Confidence Intervals',
+        'A/B Testing',
+        'Correlation vs Causation',
+        'Regression Analysis',
+        'Chi-Square Test',
+        'Probability Rules',
+        'Sampling Techniques'
+    ],
+    'Excel & Spreadsheets': [
+        'VLOOKUP / XLOOKUP',
+        'Pivot Tables',
+        'Conditional Formatting',
+        'Data Validation',
+        'IF Statements & Nested Logic',
+        'Charts & Graphs',
+        'Power Query / Power Pivot',
+        'Using Excel for EDA',
+        'Text & Date Functions',
+        'Macros & Automation'
+    ],
+    'Python & R': [
+        'Pandas and NumPy',
+        'DataFrames and Series',
+        'Data Cleaning with Python',
+        'Matplotlib / Seaborn for Visualization',
+        'Plotly for Interactive Dashboards',
+        'Basic Statistical Analysis with Python',
+        'Jupyter Notebooks',
+        'Scripting and Automation',
+        'R Basics',
+        'Tidyverse, ggplot2 (for R)'
+    ],
+    'Business & Domain Knowledge': [
+        'Understanding Business KPIs',
+        'Translating Business Questions into Analysis',
+        'Communicating Findings to Non-Technical Stakeholders',
+        'Measuring Business Impact',
+        'Financial Metrics (ROI, LTV, CAC)',
+        'Product Metrics (Retention, Churn, DAU, MAU)',
+        'Marketing Funnel Analysis',
+        'Customer Segmentation',
+        'E-commerce / Sales Analysis',
+        'Revenue and Growth Trends'
+    ],
+    'Tools & Platforms': [
+        'SQL (MySQL, PostgreSQL)',
+        'Excel / Google Sheets',
+        'Tableau / Power BI',
+        'Python / Jupyter Notebooks',
+        'RStudio',
+        'Looker Studio',
+        'Apache Airflow',
+        'Git/GitHub',
+        'Google Analytics',
+        'Snowflake, Redshift, BigQuery'
+    ],
+    'Analytical Thinking': [
+        'Breaking Down Complex Problems',
+        'Identifying Key Metrics',
+        'Designing Metrics and KPIs',
+        'Interpreting Trends and Anomalies',
+        'Root Cause Analysis',
+        'Prioritizing Analytical Projects',
+        'Critical Thinking',
+        'Asking the Right Questions',
+        'Being Curious with Data',
+        'Communicating Uncertainty & Assumptions'
+    ],
+    'Interview Scenarios': [
+        'SQL Case Studies',
+        'A/B Test Design and Interpretation',
+        'Dashboard Building Walkthrough',
+        'Business Problem Solving',
+        'Data Cleaning Challenge',
+        'Exploratory Data Report',
+        'Real-Time Scenario',
+        'Product Usage Analysis',
+        'Forecasting Demand or Sales',
+        'Behavioral Questions'
+    ]
   },
 };
 
