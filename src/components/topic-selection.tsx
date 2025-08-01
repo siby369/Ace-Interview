@@ -203,17 +203,19 @@ export default function TopicSelection({
                 key={mainTopic}
                 className="border rounded-lg px-4"
               >
-                 <div className="flex items-center">
-                  <Checkbox
-                    id={`checkbox-main-${slugify(mainTopic)}`}
-                    checked={areAllSubTopicsSelected}
-                    onCheckedChange={(checked) => handleMainTopicSelectionChange(mainTopic, !!checked)}
-                    className="mr-3"
-                  />
-                  <AccordionTrigger className="text-lg font-semibold hover:no-underline flex-1">
-                    {mainTopic}
+                 <AccordionTrigger className="text-lg font-semibold hover:no-underline flex-1">
+                   <div className="flex items-center gap-3">
+                     <Checkbox
+                       id={`checkbox-main-${slugify(mainTopic)}`}
+                       checked={areAllSubTopicsSelected}
+                       onCheckedChange={(checked) => handleMainTopicSelectionChange(mainTopic, !!checked)}
+                       onClick={(e) => e.stopPropagation()}
+                     />
+                     <Label htmlFor={`checkbox-main-${slugify(mainTopic)}`} className="text-lg font-semibold cursor-pointer">
+                      {mainTopic}
+                     </Label>
+                   </div>
                   </AccordionTrigger>
-                </div>
                 <AccordionContent>
                   <div className="space-y-6 pt-4">
                     {subTopics.map(subTopic => (
