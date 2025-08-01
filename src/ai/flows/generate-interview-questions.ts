@@ -20,9 +20,14 @@ export type GenerateInterviewQuestionsInput = z.infer<
   typeof GenerateInterviewQuestionsInputSchema
 >;
 
+const GeneratedQuestionSchema = z.object({
+  question: z.string().describe('The interview question.'),
+  requiresTyping: z.boolean().describe('Whether the question requires the user to type an answer (e.g., for a coding problem). Set to false for conceptual or behavioral questions.')
+});
+
 const GenerateInterviewQuestionsOutputSchema = z.object({
   questions: z
-    .array(z.string())
+    .array(GeneratedQuestionSchema)
     .describe('An array of generated interview questions.'),
 });
 
@@ -43,9 +48,9 @@ const generateInterviewQuestionsPrompt = ai.definePrompt({
   prompt: `You are an expert interview question generator. For the given role, generate a list of relevant interview questions.
 You must generate two questions per topic.
 For each topic, you must generate questions that match the specified difficulty level.
-- If the difficulty is "Easy", ask a straightforward definition-based or simple-concept question.
-- If the difficulty is "Medium", ask a question that requires explaining a process or comparing concepts.
-- If the difficulty is "Hard", ask a complex scenario-based or design question that requires deep, applied knowledge.
+- If the difficulty is "Easy", ask a straightforward definition-based or simple-concept question. These should not require typing.
+- If the difficulty is "Medium", ask a question that requires explaining a process or comparing concepts. These should not require typing.
+- If the difficulty is "Hard", ask a complex scenario-based or design/coding question that requires deep, applied knowledge. Only set requiresTyping to true for questions that explicitly ask to write code or a complex algorithm.
 
 Role: {{{role}}}
 

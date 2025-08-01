@@ -1,6 +1,7 @@
 'use client';
 import {
   generateInterviewQuestions,
+  GenerateInterviewQuestionsOutput
 } from '@/ai/flows/generate-interview-questions';
 import { Header } from '@/components/header';
 import { InterviewClientView } from '@/components/interview-client-view';
@@ -11,7 +12,7 @@ import { useEffect, useState } from 'react';
 
 export default function InterviewStartPage() {
   const searchParams = useSearchParams();
-  const [questions, setQuestions] = useState<string[] | null>(null);
+  const [interviewData, setInterviewData] = useState<GenerateInterviewQuestionsOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -34,7 +35,7 @@ export default function InterviewStartPage() {
     async function fetchQuestions() {
       try {
         const result = await generateInterviewQuestions({ role: roleName, topics });
-        setQuestions(result.questions);
+        setInterviewData(result);
       } catch (e) {
         console.error(e);
         setError('Failed to generate interview questions. Please try again later.');
@@ -63,7 +64,7 @@ export default function InterviewStartPage() {
       );
   }
 
-  if (error || !questions) {
+  if (error || !interviewData) {
     return (
       <div className="flex flex-col h-screen">
         <Header />
@@ -84,7 +85,7 @@ export default function InterviewStartPage() {
   return (
     <div className="flex flex-col h-screen">
       <Header />
-      <InterviewClientView initialQuestions={questions} role={roleName} />
+      <InterviewClientView initialInterviewData={interviewData} role={roleName} />
     </div>
   );
 }
