@@ -207,7 +207,6 @@ export default function TopicSelection({
                   <Checkbox
                     id={`checkbox-main-${slugify(mainTopic)}`}
                     checked={areAllSubTopicsSelected}
-                    aria-label={`Select all ${mainTopic}`}
                     onCheckedChange={(checked) => handleMainTopicSelectionChange(mainTopic, !!checked)}
                     className="mr-3"
                   />
