@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { BotMessageSquare, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
