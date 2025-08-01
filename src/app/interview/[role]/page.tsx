@@ -1,49 +1,29 @@
-import { generateInterviewQuestions } from '@/ai/flows/generate-interview-questions';
-import { unslugify } from '@/lib/utils';
+import { RoleSelectionForm } from '@/components/role-selection-form';
 import { Header } from '@/components/header';
-import { InterviewClientView } from '@/components/interview-client-view';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { TriangleAlert } from 'lucide-react';
+import { unslugify } from '@/lib/utils';
+import DifficultySelection from '@/components/difficulty-selection';
 
-export default async function InterviewPage({
+export default function RoleDifficultyPage({
   params,
 }: {
   params: { role: string };
 }) {
   const roleName = unslugify(params.role);
-  let questions: string[] | null = null;
-  let error: string | null = null;
-
-  try {
-    const result = await generateInterviewQuestions({ role: roleName });
-    questions = result.questions;
-  } catch (e) {
-    console.error(e);
-    error = 'Failed to generate interview questions. Please try again later.';
-  }
-
-  if (error || !questions) {
-    return (
-      <div className="flex flex-col h-screen">
-        <Header />
-        <main className="flex-1 flex items-center justify-center p-4">
-          <Alert variant="destructive" className="max-w-lg">
-            <TriangleAlert className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {error ||
-                'Could not load interview questions for this role. Please go back and try another.'}
-            </AlertDescription>
-          </Alert>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-screen">
       <Header />
-      <InterviewClientView initialQuestions={questions} role={roleName} />
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
+        <div className="w-full max-w-4xl text-center">
+          <p className="text-lg text-primary font-semibold">{roleName}</p>
+          <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl mt-2">
+            Select Difficulty
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Choose the difficulty level for your mock interview.
+          </p>
+        </div>
+        <DifficultySelection roleSlug={params.role} />
+      </main>
     </div>
   );
 }
