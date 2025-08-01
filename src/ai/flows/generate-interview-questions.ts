@@ -40,7 +40,12 @@ const generateInterviewQuestionsPrompt = ai.definePrompt({
   name: 'generateInterviewQuestionsPrompt',
   input: {schema: GenerateInterviewQuestionsInputSchema},
   output: {schema: GenerateInterviewQuestionsOutputSchema},
-  prompt: `You are an expert interview question generator. Given a role and a set of topics with their corresponding difficulty levels, you will generate a list of relevant interview questions. The questions should be challenging and cover the specified topics at the chosen difficulty. Generate two questions per topic.
+  prompt: `You are an expert interview question generator. For the given role, generate a list of relevant interview questions.
+You must generate two questions per topic.
+For each topic, you must generate questions that match the specified difficulty level.
+- If the difficulty is "Easy", ask a straightforward definition-based or simple-concept question.
+- If the difficulty is "Medium", ask a question that requires explaining a process or comparing concepts.
+- If the difficulty is "Hard", ask a complex scenario-based or design question that requires deep, applied knowledge.
 
 Role: {{{role}}}
 
