@@ -56,4 +56,40 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Set default cursor */
+  html {
+    cursor: default;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+  }
+
+  /* Set cursor for text input elements */
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='search'],
+  input[type='url'],
+  input[type='tel'],
+  input[type='number'],
+  textarea {
+    cursor: text;
+    -webkit-user-select: auto; /* Safari */
+    -ms-user-select: auto; /* IE 10 and IE 11 */
+    user-select: auto; /* Standard syntax */
+  }
+
+  /* Set cursor for clickable elements */
+  button,
+  a,
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  p, h1, h2, h3, h4, h5, h6, span, div {
+    -webkit-user-select: text; /* Safari */
+    -ms-user-select: text; /* IE 10 and IE 11 */
+    user-select: text; /* Standard syntax */
+    cursor: text;
+  }
 }
