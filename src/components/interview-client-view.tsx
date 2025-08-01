@@ -17,6 +17,7 @@ import { Progress } from './ui/progress';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Input } from './ui/input';
 
 const answerSchema = z.object({
   answer: z.string().min(1, 'Please provide an answer.'),
