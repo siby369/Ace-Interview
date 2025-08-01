@@ -15,6 +15,8 @@ import { Progress } from './ui/progress';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { useAuth } from '@/hooks/use-auth';
+import { Header } from './header';
 
 const answerSchema = z.object({
   answer: z.string().min(20, 'Your answer should be at least 20 characters long.'),
@@ -28,6 +30,7 @@ interface InterviewClientViewProps {
 export function InterviewClientView({ initialQuestions, role }: InterviewClientViewProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [questions] = useState(initialQuestions);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [feedback, setFeedback] = useState<ProvideAnswerFeedbackOutput | null>(null);

@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
+import { AuthProvider } from '@/hooks/use-auth';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -41,10 +42,12 @@ export default function RootLayout({
           spaceGrotesk.variable
         )}
       >
-        <div className="flex flex-col h-full">
-          {children}
-        </div>
-        <Toaster />
+        <AuthProvider>
+          <div className="flex flex-col h-full">
+            {children}
+          </div>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );
