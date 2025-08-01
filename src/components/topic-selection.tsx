@@ -20,7 +20,6 @@ import {
   AccordionTrigger,
 } from './ui/accordion';
 import { Checkbox } from './ui/checkbox';
-import { ChevronDown } from 'lucide-react';
 
 const difficulties = ['Easy', 'Medium', 'Hard'];
 
@@ -202,23 +201,19 @@ export default function TopicSelection({
               <AccordionItem
                 value={mainTopic}
                 key={mainTopic}
-                className="border rounded-lg px-4"
+                className="border rounded-lg"
               >
-                <div className="flex items-center w-full">
-                   <div className="flex items-center gap-3 py-4">
-                     <Checkbox
-                       id={`checkbox-main-${slugify(mainTopic)}`}
-                       checked={areAllSubTopicsSelected}
-                       onCheckedChange={(checked) => handleMainTopicSelectionChange(mainTopic, !!checked)}
-                       onClick={(e) => e.stopPropagation()}
-                     />
-                   </div>
-                  <AccordionTrigger className="text-lg font-semibold hover:no-underline flex-1 p-0 justify-start gap-2">
-                     <Label htmlFor={`checkbox-main-${slugify(mainTopic)}`} className="text-lg font-semibold cursor-pointer">
-                      {mainTopic}
-                     </Label>
-                  </AccordionTrigger>
-                </div>
+                 <AccordionTrigger className="text-lg font-semibold hover:no-underline flex-1 p-4 justify-start gap-3">
+                   <Checkbox
+                     id={`checkbox-main-${slugify(mainTopic)}`}
+                     checked={areAllSubTopicsSelected}
+                     onCheckedChange={(checked) => handleMainTopicSelectionChange(mainTopic, !!checked)}
+                     onClick={(e) => e.stopPropagation()}
+                   />
+                   <span className="text-lg font-semibold cursor-pointer">
+                    {mainTopic}
+                   </span>
+                </AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-6 pt-4">
                     {subTopics.map(subTopic => (
