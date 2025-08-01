@@ -1,14 +1,21 @@
-import { RoleSelectionForm } from '@/components/role-selection-form';
 import { Header } from '@/components/header';
 import { unslugify } from '@/lib/utils';
-import DifficultySelection from '@/components/difficulty-selection';
+import TopicSelection from '@/components/topic-selection';
 
-export default function RoleDifficultyPage({
+const topicsByRole: Record<string, string[]> = {
+  'software-engineer': ['Data Structures', 'Algorithms', 'System Design'],
+  'product-manager': ['Product Strategy', 'Prioritization', 'Execution'],
+  'ux-designer': ['Design Process', 'Collaboration', 'Portfolio Review'],
+  'data-analyst': ['SQL', 'Statistics', 'Data Visualization'],
+};
+
+export default function RoleTopicsPage({
   params,
 }: {
   params: { role: string };
 }) {
   const roleName = unslugify(params.role);
+  const topics = topicsByRole[params.role] || [];
   return (
     <div className="flex flex-col h-screen">
       <Header />
@@ -16,13 +23,13 @@ export default function RoleDifficultyPage({
         <div className="w-full max-w-4xl text-center">
           <p className="text-lg text-primary font-semibold">{roleName}</p>
           <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl mt-2">
-            Select Difficulty
+            Customize Your Interview
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Choose the difficulty level for your mock interview.
+            Select the topics and their difficulty for your mock interview.
           </p>
         </div>
-        <DifficultySelection roleSlug={params.role} />
+        <TopicSelection roleSlug={params.role} roleName={roleName} topics={topics} />
       </main>
     </div>
   );
