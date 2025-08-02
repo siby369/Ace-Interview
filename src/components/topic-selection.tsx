@@ -194,8 +194,8 @@ export default function TopicSelection({
                 </SelectContent>
               </Select>
             </div>
-             <div className="w-full sm:w-auto">
-                <Label htmlFor="question-count">
+             <div className="w-full sm:w-auto flex items-center gap-2">
+                <Label htmlFor="question-count" className='whitespace-nowrap'>
                   Number of Questions
                 </Label>
                 <Input
@@ -209,7 +209,7 @@ export default function TopicSelection({
                       Math.max(1, Math.min(20, parseInt(e.target.value, 10) || 1))
                     )
                   }
-                  className="w-full sm:w-[180px] mt-2 sm:mt-0"
+                  className="w-20"
                 />
               </div>
           </div>
