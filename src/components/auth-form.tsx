@@ -34,7 +34,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: 'admin@example.com',
-      password: 'admin',
+      password: 'admin123',
     },
   });
 
