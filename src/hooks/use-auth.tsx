@@ -16,8 +16,8 @@ import { useToast } from './use-toast';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: typeof createUserWithEmailAndPassword;
-  signIn: typeof signInWithEmailAndPassword;
+  signUp: (email: string, pass: string) => Promise<any>;
+  signIn: (email: string, pass: string) => Promise<any>;
   signOut: () => Promise<void>;
 }
 
@@ -37,6 +37,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const signUp = (email: string, pass: string) => {
+    return createUserWithEmailAndPassword(auth, email, pass);
+  }
+
+  const signIn = (email: string, pass: string) => {
+    return signInWithEmailAndPassword(auth, email, pass);
+  }
+
   const signOut = async () => {
     await firebaseSignOut(auth);
     router.push('/');
@@ -45,8 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     loading,
-    signUp: createUserWithEmailAndPassword,
-    signIn: signInWithEmailAndPassword,
+    signUp,
+    signIn,
     signOut,
   };
 
