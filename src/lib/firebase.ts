@@ -1,6 +1,7 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -24,10 +25,9 @@ if (!areAllVarsDefined) {
     console.error("Firebase config environment variables are not set. Please check your .env file.");
 }
 
-
 // Initialize Firebase
 const app = !getApps().length && areAllVarsDefined ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
 
-
-export { app, auth };
+if (typeof window !== 'undefined' && areAllVarsDefined) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_
