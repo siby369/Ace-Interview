@@ -5,7 +5,7 @@ import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { transcribeAudio } from '@/ai/flows/transcribe-audio';
 import { GenerateInterviewQuestionsOutput } from '@/ai/flows/generate-interview-questions';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, ArrowRight, LoaderCircle, Mic, MicOff, Sparkles, Square, Volume2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Languages, LoaderCircle, Mic, MicOff, Sparkles, Square, Volume2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -17,6 +17,7 @@ import { Progress } from './ui/progress';
 import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const answerSchema = z.object({
   answer: z.string().min(1, 'Please provide an answer.'),
@@ -26,6 +27,15 @@ interface InterviewClientViewProps {
   initialInterviewData: GenerateInterviewQuestionsOutput;
   role: string;
 }
+
+const supportedLanguages = [
+  { name: 'English (US)', code: 'en-US' },
+  { name: 'Spanish (Spain)', code: 'es-ES' },
+  { name: 'French (France)', code: 'fr-FR' },
+  { name: 'German (Germany)', code: 'de-DE' },
+  { name: 'Japanese (Japan)', code: 'ja-JP' },
+  { name: 'Chinese (Mandarin, Simplified)', code: 'cmn-CN' },
+];
 
 export function InterviewClientView({ initialInterviewData, role }: InterviewClientViewProps) {
   const router = useRouter();
@@ -37,6 +47,7 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isGeneratingSpeech, setIsGeneratingSpeech] = useState(true);
   const [questionAudio, setQuestionAudio] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState('en-US');
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -122,7 +133,7 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
           const base64Audio = reader.result as string;
           setIsTranscribing(true);
           try {
-            const { text } = await transcribeAudio({ audioDataUri: base64Audio });
+            const { text } = await transcribeAudio({ audioDataUri: base64Audio, languageCode: selectedLanguage });
             const currentAnswer = form.getValues('answer');
             form.setValue('answer', (currentAnswer ? currentAnswer + '\n' : '') + text);
           } catch (error) {
@@ -271,20 +282,36 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
                 />
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button
-                    type="button"
-                    variant={isRecording ? 'destructive' : 'outline'}
-                    size="lg"
-                    onClick={handleMicButtonClick}
-                    disabled={hasMicPermission === null || isLoading}
-                  >
-                    {isRecording ? (
-                      <Square className="mr-2 h-4 w-4" />
-                    ) : (
-                      <Mic className="mr-2 h-4 w-4" />
-                    )}
-                    {isRecording ? 'Stop Recording' : 'Record Answer'}
-                  </Button>
+                    <div className="flex items-center gap-2">
+                       <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                          <Languages className="mr-2 h-4 w-4" />
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {supportedLanguages.map(lang => (
+                            <SelectItem key={lang.code} value={lang.code}>
+                              {lang.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant={isRecording ? 'destructive' : 'outline'}
+                        size="lg"
+                        onClick={handleMicButtonClick}
+                        disabled={hasMicPermission === null || isLoading}
+                        className="flex-1 sm:flex-none"
+                      >
+                        {isRecording ? (
+                          <Square className="mr-2 h-4 w-4" />
+                        ) : (
+                          <Mic className="mr-2 h-4 w-4" />
+                        )}
+                        {isRecording ? 'Stop' : 'Record'}
+                      </Button>
+                    </div>
                   <Button type="submit" size="lg" disabled={isLoading} className="flex-1">
                     <Sparkles className="mr-2 h-4 w-4" />
                     Submit for Feedback
