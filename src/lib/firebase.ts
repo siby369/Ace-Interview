@@ -1,38 +1,23 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  "projectId": "ace-interview-omyob",
+  "appId": "1:688484293087:web:2fbb644ea9b5ce0fec0c6a",
+  "storageBucket": "ace-interview-omyob.firebasestorage.app",
+  "apiKey": "AIzaSyCAP0S2Pc-bvPTKvuQeQiUGgOExhBcf10w",
+  "authDomain": "ace-interview-omyob.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "688484293087"
 };
 
-// Check if all required environment variables are present
-const areAllVarsDefined =
-  firebaseConfig.apiKey &&
-  firebaseConfig.authDomain &&
-  firebaseConfig.projectId &&
-  firebaseConfig.storageBucket &&
-  firebaseConfig.messagingSenderId &&
-  firebaseConfig.appId;
 
 // Initialize Firebase
-const app = areAllVarsDefined && getApps().length === 0 ? initializeApp(firebaseConfig) : getApps().length > 0 ? getApp() : null;
-
-
-if (app && typeof window !== 'undefined') {
-  const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-  if (recaptchaKey) {
-     initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider(recaptchaKey),
-      isTokenAutoRefreshEnabled: true
-    });
-  }
- 
+let app: FirebaseApp;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
 }
 
-export const auth = app ? getAuth(app) : null;
+export const auth = getAuth(app);
