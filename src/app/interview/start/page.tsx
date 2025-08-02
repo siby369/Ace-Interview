@@ -17,11 +17,12 @@ export default function InterviewStartPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const roleName = searchParams.get('role') || 'Selected Role';
+  const questionCount = parseInt(searchParams.get('questionCount') || '5', 10);
   
   useEffect(() => {
     const topics: Record<string, string> = {};
     searchParams.forEach((value, key) => {
-      if(key !== 'role') {
+      if(key !== 'role' && key !== 'questionCount') {
         topics[key] = value;
       }
     });
@@ -34,7 +35,7 @@ export default function InterviewStartPage() {
 
     async function fetchQuestions() {
       try {
-        const result = await generateInterviewQuestions({ role: roleName, topics });
+        const result = await generateInterviewQuestions({ role: roleName, topics, questionCount });
         setInterviewData(result);
       } catch (e) {
         console.error(e);
@@ -45,7 +46,7 @@ export default function InterviewStartPage() {
     }
 
     fetchQuestions();
-  }, [searchParams, roleName]);
+  }, [searchParams, roleName, questionCount]);
 
   if (isLoading) {
       return (

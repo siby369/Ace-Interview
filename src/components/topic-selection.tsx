@@ -20,6 +20,7 @@ import {
   AccordionTrigger,
 } from './ui/accordion';
 import { Checkbox } from './ui/checkbox';
+import { Input } from './ui/input';
 
 const difficulties = ['Easy', 'Medium', 'Hard'];
 
@@ -43,6 +44,7 @@ export default function TopicSelection({
   >({});
   const [globalDifficulty, setGlobalDifficulty] = useState<string>('');
   const [isAllSelected, setIsAllSelected] = useState(false);
+  const [questionCount, setQuestionCount] = useState(5);
 
   const allSubtopics = Object.values(topics).flat();
 
@@ -138,7 +140,6 @@ export default function TopicSelection({
     );
 
     if (selectedTopics.length === 0) {
-      // This should be handled by the disabled button, but as a fallback
       return;
     }
 
@@ -149,6 +150,7 @@ export default function TopicSelection({
       ])
     );
     queryParams.set('role', roleName);
+    queryParams.set('questionCount', questionCount.toString());
 
     router.push(`/interview/start?${queryParams.toString()}`);
   };
@@ -171,31 +173,50 @@ export default function TopicSelection({
               Select All Topics
             </Label>
           </div>
-          <div className="w-full sm:w-auto">
-            <Label htmlFor="global-difficulty" className="sr-only">
-              Set All Difficulties
-            </Label>
-            <Select onValueChange={handleGlobalDifficultyChange}>
-              <SelectTrigger
-                id="global-difficulty"
-                className="w-full sm:w-[180px]"
-              >
-                <SelectValue placeholder="Set All Difficulties" />
-              </SelectTrigger>
-              <SelectContent>
-                {difficulties.map(difficulty => (
-                  <SelectItem key={difficulty} value={difficulty}>
-                    {difficulty}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div className="w-full sm:w-auto">
+              <Label htmlFor="global-difficulty" className="sr-only">
+                Set All Difficulties
+              </Label>
+              <Select onValueChange={handleGlobalDifficultyChange}>
+                <SelectTrigger
+                  id="global-difficulty"
+                  className="w-full sm:w-[180px]"
+                >
+                  <SelectValue placeholder="Set All Difficulties" />
+                </SelectTrigger>
+                <SelectContent>
+                  {difficulties.map(difficulty => (
+                    <SelectItem key={difficulty} value={difficulty}>
+                      {difficulty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+             <div className="w-full sm:w-auto">
+                <Label htmlFor="question-count">
+                  Number of Questions
+                </Label>
+                <Input
+                  id="question-count"
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={questionCount}
+                  onChange={e =>
+                    setQuestionCount(
+                      Math.max(1, Math.min(20, parseInt(e.target.value, 10) || 1))
+                    )
+                  }
+                  className="w-full sm:w-[180px] mt-2 sm:mt-0"
+                />
+              </div>
           </div>
         </div>
         <Accordion type="multiple" className="w-full space-y-4">
           {Object.entries(topics).map(([mainTopic, subTopics]) => {
             const areAllSubTopicsSelected = subTopics.every(st => selectedSubTopics[st]);
-            const areSomeSubTopicsSelected = subTopics.some(st => selectedSubTopics[st]) && !areAllSubTopicsSelected;
             
             return (
               <AccordionItem
