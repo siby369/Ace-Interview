@@ -1,3 +1,4 @@
+require('dotenv').config();
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -27,5 +28,3 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   }
 };
-
-export default nextConfig;
