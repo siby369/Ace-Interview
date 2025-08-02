@@ -30,4 +30,9 @@ const app = !getApps().length && areAllVarsDefined ? initializeApp(firebaseConfi
 
 if (typeof window !== 'undefined' && areAllVarsDefined) {
   initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_
+    provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || 'your-recaptcha-site-key'),
+    isTokenAutoRefreshEnabled: true
+  });
+}
+
+export const auth = getAuth(app);
