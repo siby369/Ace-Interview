@@ -14,6 +14,7 @@ import {z} from 'genkit';
 const GenerateInterviewQuestionsInputSchema = z.object({
   role: z.string().describe('The role for which to generate interview questions.'),
   topics: z.record(z.string()).describe('A map of topics to their difficulty level (e.g. { "data-structures": "Hard" }).'),
+  questionCount: z.number().describe('The total number of questions to generate.'),
 });
 
 export type GenerateInterviewQuestionsInput = z.infer<
@@ -46,7 +47,7 @@ const generateInterviewQuestionsPrompt = ai.definePrompt({
   input: {schema: GenerateInterviewQuestionsInputSchema},
   output: {schema: GenerateInterviewQuestionsOutputSchema},
   prompt: `You are an expert interview question generator. For the given role, generate a list of relevant interview questions.
-You must generate two questions per topic.
+You must generate a total of {{{questionCount}}} questions, distributed evenly among the selected topics.
 For each topic, you must generate questions that match the specified difficulty level.
 - If the difficulty is "Easy", ask a straightforward definition-based or simple-concept question. These should not require typing.
 - If the difficulty is "Medium", ask a question that requires explaining a process or comparing concepts. These should not require typing.
@@ -58,6 +59,8 @@ Role: {{{role}}}
 Topic: {{@key}}
 Difficulty: {{this}}
 {{/each}}
+
+Total Questions to Generate: {{{questionCount}}}
 
 Questions:`,
 });
