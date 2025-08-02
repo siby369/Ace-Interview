@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview A flow to transcribe audio to text.
+ * @fileOverview A flow to transcribe audio to text in a specified language.
  *
  * - transcribeAudio - A function that transcribes audio data to text.
  * - TranscribeAudioInput - The input type for the transcribeAudio function.
@@ -17,6 +17,7 @@ const TranscribeAudioInputSchema = z.object({
     .describe(
       "A chunk of audio, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
     ),
+  languageCode: z.string().describe('The BCP-47 language code for transcription (e.g., "en-US", "es-ES").')
 });
 export type TranscribeAudioInput = z.infer<typeof TranscribeAudioInputSchema>;
 
@@ -37,7 +38,7 @@ const transcribeAudioPrompt = ai.definePrompt({
   name: 'transcribeAudioPrompt',
   input: {schema: TranscribeAudioInputSchema},
   output: {schema: TranscribeAudioOutputSchema},
-  prompt: `Transcribe the following audio recording to text.
+  prompt: `Transcribe the following audio recording to text. The audio is in the language with BCP-47 code: {{{languageCode}}}.
   {{media url=audioDataUri}}
   `,
 });
