@@ -8,9 +8,12 @@ import { InterviewClientView } from '@/components/interview-client-view';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { LoaderCircle, TriangleAlert } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
-export default function InterviewStartPage() {
+// This is the key change to prevent static pre-rendering
+export const dynamic = 'force-dynamic';
+
+function InterviewStartContent() {
   const searchParams = useSearchParams();
   const [interviewData, setInterviewData] = useState<GenerateInterviewQuestionsOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -27,21 +30,30 @@ export default function InterviewStartPage() {
       }
     });
 
-    if (Object.keys(topics).length === 0) {
+    if (Object.keys(topics).length === 0 && searchParams.toString()) {
       setError('No topics selected. Please go back and select topics for your interview.');
       setIsLoading(false);
       return;
     }
 
     async function fetchQuestions() {
-      try {
-        const result = await generateInterviewQuestions({ role: roleName, topics, questionCount });
-        setInterviewData(result);
-      } catch (e) {
-        console.error(e);
-        setError('Failed to generate interview questions. Please try again later.');
-      } finally {
+      // Only fetch if topics are available
+      if (Object.keys(topics).length > 0) {
+        try {
+          const result = await generateInterviewQuestions({ role: roleName, topics, questionCount });
+          setInterviewData(result);
+        } catch (e) {
+          console.error(e);
+          setError('Failed to generate interview questions. Please try again later.');
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        // If there are no topics, we don't start loading.
+        // This might happen on an initial, incorrect load.
+        // We can either show an error or a default state.
         setIsLoading(false);
+        setError('No topics selected. Please go back and select topics for your interview.');
       }
     }
 
@@ -88,5 +100,13 @@ export default function InterviewStartPage() {
       <Header />
       <InterviewClientView initialInterviewData={interviewData} role={roleName} />
     </div>
+  );
+}
+
+export default function InterviewStartPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <InterviewStartContent />
+    </Suspense>
   );
 }
