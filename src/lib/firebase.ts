@@ -21,18 +21,19 @@ const areAllVarsDefined =
   firebaseConfig.messagingSenderId &&
   firebaseConfig.appId;
 
-if (!areAllVarsDefined) {
-    console.error("Firebase config environment variables are not set. Please check your .env file.");
-}
-
 // Initialize Firebase
-const app = !getApps().length && areAllVarsDefined ? initializeApp(firebaseConfig) : getApp();
+const app = areAllVarsDefined && getApps().length === 0 ? initializeApp(firebaseConfig) : getApps().length > 0 ? getApp() : null;
 
-if (typeof window !== 'undefined' && areAllVarsDefined) {
-  initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || 'your-recaptcha-site-key'),
-    isTokenAutoRefreshEnabled: true
-  });
+
+if (app && typeof window !== 'undefined') {
+  const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  if (recaptchaKey) {
+     initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(recaptchaKey),
+      isTokenAutoRefreshEnabled: true
+    });
+  }
+ 
 }
 
-export const auth = getAuth(app);
+export const auth = app ? getAuth(app) : null;
