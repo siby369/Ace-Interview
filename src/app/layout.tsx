@@ -3,7 +3,6 @@ import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from '@/components/theme-provider';
 
 const inter = Inter({
@@ -49,12 +48,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
             <div className="flex flex-col h-full">
               {children}
             </div>
             <Toaster />
-          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
