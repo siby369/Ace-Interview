@@ -1,14 +1,11 @@
-start and build commands:
-
-
+start commands:
 
 npm run dev
-
-
 
 npm run genkit:dev
 
 Demo:
+
 https://ace-interview-n3q0.onrender.com
 
 or 
