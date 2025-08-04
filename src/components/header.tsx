@@ -4,6 +4,13 @@ import Link from 'next/link';
 import { BotMessageSquare } from 'lucide-react';
 import { Button } from './ui/button';
 import { ThemeToggle } from './theme-toggle';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
 
 export function Header() {
   return (
@@ -15,10 +22,23 @@ export function Header() {
         </h1>
       </Link>
       <div className="flex items-center gap-2">
-         <ThemeToggle />
-         <Button asChild>
-            <Link href="/interview/new">New Interview</Link>
-         </Button>
+        <ThemeToggle />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              New Session
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href="/interview/new">Mock Interview</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/practice/pronunciation">Pronunciation Practice</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
