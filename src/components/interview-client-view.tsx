@@ -51,6 +51,7 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
+  const [recordedAudioDataUri, setRecordedAudioDataUri] = useState<string | null>(null);
   const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -115,7 +116,7 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
       });
       return;
     }
-
+    setRecordedAudioDataUri(null); // Clear previous recording
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
@@ -131,11 +132,12 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
           const base64Audio = reader.result as string;
+          setRecordedAudioDataUri(base64Audio);
           setIsTranscribing(true);
           try {
             const { text } = await transcribeAudio({ audioDataUri: base64Audio, languageCode: selectedLanguage });
             const currentAnswer = form.getValues('answer');
-            form.setValue('answer', (currentAnswer ? currentAnswer + '\n' : '') + text);
+            form.setValue('answer', (currentAnswer ? currentAnswer + '\\n' : '') + text);
           } catch (error) {
             console.error('Transcription failed', error);
             toast({
@@ -185,7 +187,8 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
       const result = await provideAnswerFeedback({
         jobRole: role,
         interviewQuestion: currentQuestion.question,
-        userAnswer: data.answer,
+        userAnswerText: data.answer,
+        audioDataUri: recordedAudioDataUri ?? undefined
       });
       setFeedback(result);
     } catch (error) {
@@ -207,6 +210,7 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
       setFeedback(null);
       form.reset();
       setQuestionAudio(null);
+      setRecordedAudioDataUri(null);
     }
   };
 
@@ -312,9 +316,9 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
                         {isRecording ? 'Stop' : 'Record'}
                       </Button>
                     </div>
-                  <Button type="submit" size="lg" disabled={isLoading} className="flex-1">
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Submit for Feedback
+                  <Button type="submit" size="lg" disabled={isLoading || isTranscribing} className="flex-1">
+                    {isTranscribing ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4" />}
+                    {isTranscribing ? 'Transcribing...' : 'Submit for Feedback'}
                   </Button>
                 </div>
               </form>
