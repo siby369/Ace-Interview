@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, BotMessageSquare, BarChart } from 'lucide-react';
+import { CheckCircle, BotMessageSquare, BarChart, Mic } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Header } from '@/components/header';
@@ -24,10 +24,16 @@ export default function Home() {
                     dream job.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button asChild size="lg">
+                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                  <Button asChild size="lg" className="text-lg py-6 px-8">
                     <Link href="/interview/new">Start Your Free Interview</Link>
                   </Button>
+                   <Button asChild size="lg" variant="outline" className="text-lg py-6 px-8">
+                      <Link href="/practice/pronunciation">
+                        <Mic className="mr-2 h-5 w-5" />
+                        Practice Pronunciation
+                      </Link>
+                    </Button>
                 </div>
               </div>
             </div>
@@ -65,7 +71,7 @@ export default function Home() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center gap-4">
-                  <CheckCircle className="w-8 h-8 text-accent" />
+                  <CheckCircle className="w-8 h-8 text-primary" />
                   <CardTitle>Instant Feedback</CardTitle>
                 </CardHeader>
                 <CardContent>
