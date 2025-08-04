@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { getPronunciationFeedbackFlow } from './get-pronunciation-feedback';
+import { getPronunciationFeedback } from './get-pronunciation-feedback';
 
 const ProvideAnswerFeedbackInputSchema = z.object({
   jobRole: z.string().describe('The job role for the interview.'),
@@ -107,7 +107,7 @@ const provideAnswerFeedbackFlow = ai.defineFlow(
     // 2. If audio is provided, get pronunciation feedback in parallel
     let pronunciationFeedbackPromise;
     if (input.audioDataUri) {
-        pronunciationFeedbackPromise = getPronunciationFeedbackFlow({
+        pronunciationFeedbackPromise = getPronunciationFeedback({
             audioDataUri: input.audioDataUri,
             expectedText: input.userAnswerText
         });
