@@ -25,7 +25,6 @@ export default function PronunciationPractice() {
   const [feedback, setFeedback] = useState<PronunciationFeedback | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
