@@ -59,4 +59,74 @@ export async function provideAnswerFeedback(input: ProvideAnswerFeedbackInput): 
   return provideAnswerFeedbackFlow(input);
 }
 
+const provideAnswerFeedbackPrompt = ai.definePrompt({
+  name: 'provideAnswerFeedbackPrompt',
+  input: {schema: z.object({
+    jobRole: z.string(),
+    interviewQuestion: z.string(),
+    userAnswerText: z.string(),
+  })},
+  output: {schema: z.object({
+    feedback: z.string(),
+    strengths: z.string(),
+    weaknesses: z.string(),
+    overallScore: z.number(),
+    answerStructure: z.string(),
+    languageAnalysis: z.string(),
+  })},
+  prompt: `You are an AI interview coach providing feedback to a candidate.
+  Your task is to analyze the user's answer based on its content, structure, and clarity. Do NOT analyze pronunciation, as that is handled separately.
 
+  Job Role: {{{jobRole}}}
+  Interview Question: {{{interviewQuestion}}}
+  User's Answer (transcribed if spoken): {{{userAnswerText}}}
+
+  Provide constructive feedback on the user's answer. Include the following:
+  - A general feedback summary.
+  - Strengths and weaknesses of the answer's content.
+  - An overall score (0-100) for the content quality.
+  - An analysis of the answer structure (e.g. STAR method, relevance, depth).
+  - An analysis of the language used (clarity, tone, filler words).
+  `,
+});
+
+const provideAnswerFeedbackFlow = ai.defineFlow(
+  {
+    name: 'provideAnswerFeedbackFlow',
+    inputSchema: ProvideAnswerFeedbackInputSchema,
+    outputSchema: ProvideAnswerFeedbackOutputSchema,
+  },
+  async (input) => {
+    // 1. Get feedback on the answer content
+    const contentFeedbackPromise = provideAnswerFeedbackPrompt({
+        jobRole: input.jobRole,
+        interviewQuestion: input.interviewQuestion,
+        userAnswerText: input.userAnswerText
+    });
+    
+    // 2. If audio is provided, get pronunciation feedback in parallel
+    let pronunciationFeedbackPromise;
+    if (input.audioDataUri) {
+        pronunciationFeedbackPromise = getPronunciationFeedback({
+            audioDataUri: input.audioDataUri,
+            expectedText: input.userAnswerText
+        });
+    }
+
+    // 3. Await both promises
+    const [{ output: contentFeedback }, pronunciationFeedback] = await Promise.all([
+      contentFeedbackPromise,
+      pronunciationFeedbackPromise,
+    ]);
+
+    if (!contentFeedback) {
+        throw new Error("Failed to generate content feedback.");
+    }
+
+    // 4. Combine the results
+    return {
+        ...contentFeedback,
+        pronunciationAnalysis: pronunciationFeedback,
+    };
+  }
+);
