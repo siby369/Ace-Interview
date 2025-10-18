@@ -56,3 +56,49 @@ async function toWav(
   });
 }
 
+const textToSpeechFlow = ai.defineFlow(
+  {
+    name: 'textToSpeechFlow',
+    inputSchema: TextToSpeechInputSchema,
+    outputSchema: TextToSpeechOutputSchema,
+  },
+  async ({text}) => {
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while(attempts < maxAttempts) {
+      try {
+        const {media} = await ai.generate({
+          model: googleAI.model('gemini-2.5-flash-preview-tts'),
+          config: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: {voiceName: 'Algenib'},
+              },
+            },
+          },
+          prompt: text,
+        });
+
+        if (media && media.url) {
+          const audioBuffer = Buffer.from(
+            media.url.substring(media.url.indexOf(',') + 1),
+            'base64'
+          );
+          const wavBase64 = await toWav(audioBuffer);
+          return { audioDataUri: `data:audio/wav;base64,${wavBase64}` };
+        }
+      } catch (e) {
+        console.error(`TTS attempt ${attempts + 1} failed:`, e);
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 500)); // wait before retrying
+      }
+    }
+    
+    throw new Error('No audio data returned from TTS model after multiple attempts.');
+  }
+);
