@@ -47,3 +47,36 @@ export async function getPronunciationFeedback(
   return getPronunciationFeedbackFlow(input);
 }
 
+const getPronunciationFeedbackPrompt = ai.definePrompt({
+  name: 'getPronunciationFeedbackPrompt',
+  input: {schema: GetPronunciationFeedbackInputSchema},
+  output: {schema: GetPronunciationFeedbackOutputSchema},
+  prompt: `You are an expert English pronunciation coach. Your task is to analyze a user's audio recording and compare their pronunciation to the provided text.
+
+  Expected Text: "{{{expectedText}}}"
+  User's Audio: {{media url=audioDataUri}}
+
+  First, transcribe the user's audio.
+  Then, compare the transcription and the phonetic pronunciation from the audio to the expected text, word by word.
+
+  Provide the following analysis:
+  1.  **Overall Score**: An overall score from 0-100 representing the accuracy of the pronunciation compared to a native speaker. A perfect match is 100. Deduct points for mispronounced words, missing words, or extra words.
+  2.  **Transcript**: The text you transcribed from the audio.
+  3.  **Word-level Feedback**: For each word in the *original expected text*, provide a feedback object. Indicate if the word was pronounced correctly. If it was mispronounced, provide a short, specific tip (e.g., "The 'a' sound was closer to 'cat' than 'car'"). If the user skipped the word, mark it as incorrect.
+  4.  **General Feedback**: Provide a summary of the user's performance with 1-2 actionable tips for overall improvement. Focus on the most important issues.
+
+  Analyze the pronunciation carefully based on the audio provided. Do not base your analysis solely on the text transcription.
+  `,
+});
+
+const getPronunciationFeedbackFlow = ai.defineFlow(
+  {
+    name: 'getPronunciationFeedbackFlow',
+    inputSchema: GetPronunciationFeedbackInputSchema,
+    outputSchema: GetPronunciationFeedbackOutputSchema,
+  },
+  async input => {
+    const {output} = await getPronunciationFeedbackPrompt(input);
+    return output!;
+  }
+);
