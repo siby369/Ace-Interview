@@ -203,3 +203,170 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
     }
   }
 
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < interviewData.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setFeedback(null);
+      form.reset();
+      setQuestionAudio(null);
+      setRecordedAudioDataUri(null);
+    }
+  };
+
+  const isLastQuestion = currentQuestionIndex === interviewData.questions.length - 1;
+  const isInterviewFinished = isLastQuestion && feedback;
+  const isLoading = isSubmitting || isTranscribing || isGeneratingSpeech;
+
+  return (
+    <main className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col">
+        <div className="space-y-2 mb-8">
+          <p className="text-sm font-medium text-primary">
+            Role: {role}
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-bold font-headline">
+            Question {currentQuestionIndex + 1} of {interviewData.questions.length}
+          </h2>
+          <Progress value={((currentQuestionIndex + 1) / interviewData.questions.length) * 100} className="w-full" />
+           <div className="flex items-center gap-4 pt-4 !mt-6">
+              <p className="text-lg sm:text-xl text-foreground flex-1">
+                {currentQuestion.question}
+              </p>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => audioPlayerRef.current?.play()} 
+                disabled={!questionAudio || isGeneratingSpeech}
+              >
+                {isGeneratingSpeech ? <LoaderCircle className="h-5 w-5 animate-spin"/> : <Volume2 className="h-5 w-5" />}
+              </Button>
+            </div>
+          <audio ref={audioPlayerRef} />
+        </div>
+
+        <div className="flex-1 flex flex-col">
+          {!feedback && !isLoading && (
+            <>
+            {hasMicPermission === false && (
+              <Alert variant="destructive" className="mb-4">
+                <MicOff className="h-4 w-4" />
+                <AlertTitle>Microphone Access Denied</AlertTitle>
+                <AlertDescription>
+                  To use voice recording, please enable microphone permissions in your browser settings and refresh the page.
+                </AlertDescription>
+              </Alert>
+            )}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(getFeedbackAction)} className="space-y-6 flex flex-col flex-1">
+                <FormField
+                  control={form.control}
+                  name="answer"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 flex flex-col">
+                      <FormLabel>
+                        {currentQuestion.requiresTyping
+                          ? 'Your Answer & Code'
+                          : 'Your Answer'}
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={
+                            currentQuestion.requiresTyping
+                              ? 'Explain your approach and then write your code here...'
+                              : 'Speak or type your answer here...'
+                          }
+                          className="flex-1 resize-none text-base p-4"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex items-center gap-2">
+                       <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                          <Languages className="mr-2 h-4 w-4" />
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {supportedLanguages.map(lang => (
+                            <SelectItem key={lang.code} value={lang.code}>
+                              {lang.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant={isRecording ? 'destructive' : 'outline'}
+                        size="lg"
+                        onClick={handleMicButtonClick}
+                        disabled={hasMicPermission === null || isLoading}
+                        className="flex-1 sm:flex-none"
+                      >
+                        {isRecording ? (
+                          <Square className="mr-2 h-4 w-4" />
+                        ) : (
+                          <Mic className="mr-2 h-4 w-4" />
+                        )}
+                        {isRecording ? 'Stop' : 'Record'}
+                      </Button>
+                    </div>
+                  <Button type="submit" size="lg" disabled={isLoading || isTranscribing} className="flex-1">
+                    {isTranscribing ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4" />}
+                    {isTranscribing ? 'Transcribing...' : 'Submit for Feedback'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+            </>
+          )}
+
+          {isLoading && !isGeneratingSpeech && (
+            <div className="w-full flex-1 flex flex-col items-center justify-center text-center gap-4 p-8 rounded-lg border border-dashed">
+              <LoaderCircle className="h-12 w-12 animate-spin text-primary" />
+              <h3 className="text-xl font-semibold font-headline">
+                {isTranscribing ? 'Transcribing your voice...' : 'Analyzing your answer...'}
+              </h3>
+              <p className="text-muted-foreground">The AI is working its magic. This won't take long.</p>
+            </div>
+          )}
+          
+           {isGeneratingSpeech && (
+             <div className="w-full flex-1 flex flex-col items-center justify-center text-center gap-4 p-8">
+               <p className="text-muted-foreground">Preparing question...</p>
+             </div>
+           )}
+
+
+          {feedback && !isLoading && (
+            <div className="flex flex-col gap-6 animate-in fade-in-50 duration-500">
+              <FeedbackDisplay feedback={feedback} />
+              <div className="flex justify-between items-center">
+                <Button variant="outline" onClick={() => router.push('/')}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  New Interview
+                </Button>
+                {isInterviewFinished ? (
+                  <Button onClick={() => router.push('/')} className="bg-green-600 hover:bg-green-700 text-white">
+                    Finish & Go Home
+                  </Button>
+                ) : (
+                  <Button onClick={handleNextQuestion}>
+                    Next Question
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+    
