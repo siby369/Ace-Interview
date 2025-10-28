@@ -155,7 +155,7 @@ The application builds to a static export in the `out` directory, which is confi
 
 ## Live Demo
 
-- Primary Demo: https://ace-interview-n3q0.onrender.com
+- Primary Demo: https://twmp-taupe.vercel.app/
 - Alternative Demo: https://studio--ace-interview-omyob.us-central1.hosted.app
 
 ## Design System
