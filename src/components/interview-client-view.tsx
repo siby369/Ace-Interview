@@ -69,6 +69,10 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
   useEffect(() => {
     async function getMicPermission() {
       try {
+        if (typeof navigator === 'undefined' || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+          setHasMicPermission(false);
+          return;
+        }
         await navigator.mediaDevices.getUserMedia({ audio: true });
         setHasMicPermission(true);
       } catch (error) {
@@ -117,6 +121,9 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
     }
     setRecordedAudioDataUri(null); // Clear previous recording
     try {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+        throw new Error('MediaDevices API is not available. Use a supported browser over HTTPS.');
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
@@ -157,7 +164,7 @@ export function InterviewClientView({ initialInterviewData, role }: InterviewCli
       console.error('Could not start recording:', error);
       toast({
         title: 'Recording Error',
-        description: 'Could not start recording. Please check your microphone.',
+        description: 'Could not start recording. Ensure you are on HTTPS and using a browser that supports microphone access.',
         variant: 'destructive',
       });
     }
