@@ -33,6 +33,9 @@ export default function PronunciationPractice() {
   const startRecording = async () => {
     setFeedback(null);
     try {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+        throw new Error('MediaDevices API is not available. Use a supported browser over HTTPS.');
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       audioChunksRef.current = [];
@@ -74,7 +77,7 @@ export default function PronunciationPractice() {
       console.error('Could not start recording:', error);
       toast({
         title: 'Recording Error',
-        description: 'Could not start recording. Please check your microphone permissions.',
+        description: 'Could not start recording. Ensure you are on HTTPS and using a browser that supports microphone access.',
         variant: 'destructive',
       });
     }
