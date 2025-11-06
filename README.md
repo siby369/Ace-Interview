@@ -155,7 +155,7 @@ The application builds to a static export in the `out` directory, which is confi
 
 ## Live Demo
 
-- Primary Demo: ace-interview-2kxa.vercel.app
+- Primary Demo: https://ace-interview-2kxa.vercel.app/
 - Alternative Demo: https://twmp-taupe.vercel.app/
 
 ## Design System
