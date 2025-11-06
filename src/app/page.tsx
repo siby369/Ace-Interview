@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BotMessageSquare, BrainCircuit, MicVocal, Sparkles, ArrowRight, Zap } from 'lucide-react';
+import { BotMessageSquare, BrainCircuit, MicVocal, Sparkles, ArrowRight } from 'lucide-react';
 import AnimatedBackground from '@/components/animated-background';
 import Floating3DCard from '@/components/floating-3d-card';
 import FeatureCard from '@/components/feature-card';
@@ -72,11 +72,6 @@ export default function Home() {
               {/* Main Heading with 3D Effect */}
               <Floating3DCard intensity={5}>
                 <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
-                    <Zap className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">AI-Powered Mock Interviews</span>
-                  </div>
-                  
                   <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-headline tracking-tight">
                     <span className="block bg-gradient-to-r from-foreground via-foreground/90 to-foreground bg-clip-text text-transparent animate-gradient">
                       Practice Interviews,
@@ -168,7 +163,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="relative z-50 flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center justify-center px-4 md:px-6 border-t border-border/50 backdrop-blur-sm bg-background/80">
         <p className="text-xs text-muted-foreground">
-          &copy; 2025 Ace Interview. All rights reserved.
+          &copy; 2024 Ace Interview. All rights reserved.
         </p>
       </footer>
 
