@@ -62,8 +62,8 @@ Ace Interview is an AI-powered mock interview platform designed to help candidat
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd twmp
+git clone https://github.com/siby369/Ace-Interview
+cd Ace-Interview
 ```
 
 2. Install dependencies:
@@ -71,7 +71,7 @@ cd twmp
 npm install
 ```
 
-3. Create a `.env.local` file in the root directory with the following variables:
+3. Create a `.env` file in the root directory with the following variables:
 ```env
 GOOGLE_GENAI_API_KEY=your_api_key_here
 ```
@@ -155,8 +155,8 @@ The application builds to a static export in the `out` directory, which is confi
 
 ## Live Demo
 
-- Primary Demo: https://twmp-taupe.vercel.app/
-- Alternative Demo: https://studio--ace-interview-omyob.us-central1.hosted.app
+- Primary Demo: ace-interview-2kxa.vercel.app
+- Alternative Demo: https://twmp-taupe.vercel.app/
 
 ## Design System
 
