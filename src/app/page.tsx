@@ -45,18 +45,27 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
     const computedStyle = window.getComputedStyle(button);
     
     // Set exact position and dimensions to match original
+    const buttonWidth = buttonRect.width;
+    const buttonHeight = buttonRect.height;
+    const maxDimension = Math.max(buttonWidth, buttonHeight);
+    
     buttonClone.style.position = 'fixed';
     buttonClone.style.left = `${buttonRect.left}px`;
     buttonClone.style.top = `${buttonRect.top}px`;
-    buttonClone.style.width = `${buttonRect.width}px`;
-    buttonClone.style.height = `${buttonRect.height}px`;
+    buttonClone.style.width = `${buttonWidth}px`;
+    buttonClone.style.height = `${buttonHeight}px`;
     buttonClone.style.margin = '0';
     buttonClone.style.padding = computedStyle.padding;
+    buttonClone.style.transformOrigin = 'center center';
+    // Start with original border-radius, transition to perfect circle
+    const originalBorderRadius = computedStyle.borderRadius || '0px';
+    buttonClone.style.borderRadius = originalBorderRadius;
     buttonClone.style.transform = 'translate(0, 0) scale(1)';
     buttonClone.style.opacity = '1';
     buttonClone.style.zIndex = '10000';
     buttonClone.style.pointerEvents = 'none';
-    buttonClone.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.3s';
+    // All transitions happen simultaneously with same easing and duration
+    buttonClone.style.transition = 'transform 0.4s cubic-bezier(0.35, 0.0, 0.25, 1), border-radius 0.4s cubic-bezier(0.35, 0.0, 0.25, 1), opacity 0.12s cubic-bezier(0.35, 0.0, 0.25, 1) 0.28s';
     buttonClone.className = button.className;
     
     // Append to body (isolated from parent transforms)
@@ -70,15 +79,20 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
     button.style.pointerEvents = 'none';
     link.style.pointerEvents = 'none';
     
-    // STEP 8: Animate button to center (use double RAF for smooth start)
+    // STEP 8: Animate button to center with simultaneous shrink to circle
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            buttonClone.style.transform = `translate(${translateX}px, ${translateY}px) scale(0.25)`;
+            // Move to center and shrink to circle simultaneously
+            // Perfect circle: use 50% border-radius (works for any aspect ratio when scaled)
+            buttonClone.style.transform = `translate(${translateX}px, ${translateY}px) scale(0.15)`;
+            buttonClone.style.borderRadius = '50%'; // Perfect circle collapse
+            // Fade out during last 30% (starts at 70% = 0.28s of 0.4s total)
             buttonClone.style.opacity = '0';
         });
     });
     
     // STEP 9: After button reaches center, update tunnel center and activate
+    const buttonAnimationDuration = 400; // 400ms duration
     setTimeout(() => {
         // Update tunnel center to screen center (where button animation ends)
         const finalCx = screenCenterX;
@@ -125,7 +139,7 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
                 buttonClone.parentNode.removeChild(buttonClone);
             }
         }, 2000);
-    }, 600);
+    }, buttonAnimationDuration);
 }
 
 const features = [
@@ -482,7 +496,7 @@ export default function Home() {
                 className="flex flex-col gap-2 sm:flex-row py-8 w-full shrink-0 items-center justify-center px-4 md:px-6 border-t border-border/50 bg-background/50 backdrop-blur-sm"
             >
                 <p className="text-xs text-muted-foreground">
-                    © 2024 Ace Interview. All rights reserved.
+                    © 2025 Ace Interview. All rights reserved.
                 </p>
             </motion.footer>
         </div>
