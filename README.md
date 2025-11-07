@@ -2,6 +2,10 @@
 
 Ace Interview is an AI-powered mock interview platform designed to help candidates prepare for technical and behavioral interviews. The platform provides role-specific interview questions, audio recording capabilities, and comprehensive AI-driven feedback on both answer content and pronunciation.
 
+<p align="center">
+  <img src="images_readme/pic.png" width="300">
+</p>
+
 ## Features
 
 ### Role-Based Interview Practice
