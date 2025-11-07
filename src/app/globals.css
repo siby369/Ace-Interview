@@ -166,3 +166,138 @@
     cursor: text !important;
   }
 }
+
+/* Circular Tunnel Animation Styles */
+#tunnel-overlay {
+  position: fixed !important;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9999;
+  background: transparent;
+  transition: opacity 0.4s ease-out, background 0.3s ease-out;
+  overflow: hidden;
+  --tunnel-cx: 50%;
+  --tunnel-cy: 50%;
+  /* Isolate from parent transforms */
+  transform: none !important;
+}
+
+#tunnel-overlay.active {
+  opacity: 1;
+}
+
+.tunnel-container {
+  position: fixed !important;
+  left: var(--tunnel-cx, 50%);
+  top: var(--tunnel-cy, 50%);
+  width: 0;
+  height: 0;
+  perspective: 1200px;
+  perspective-origin: center center;
+  transform-style: preserve-3d;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  /* Isolate from parent transforms */
+  isolation: isolate;
+}
+
+.tunnel-ring {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 1px solid rgba(200, 210, 255, 0.18);
+  /* Single centering transform - no margins, no double translate */
+  left: 0;
+  top: 0;
+  margin: 0;
+  transform-style: preserve-3d;
+  opacity: 0;
+  --ring-z: -3000px;
+  --ring-scale: 0.1;
+  --ring-delay: 0s;
+  /* Single translate from container center (0,0) */
+  transform: translate(-60px, -60px) translateZ(var(--ring-z)) scale(var(--ring-scale));
+  will-change: transform, opacity;
+}
+
+#tunnel-overlay.active .tunnel-ring {
+  opacity: 1;
+  animation: tunnel-ring-forward 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+@keyframes tunnel-ring-forward {
+  0% {
+    opacity: 0.15;
+    transform: translate(-60px, -60px) translateZ(var(--ring-z)) scale(var(--ring-scale));
+  }
+  20% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.65;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-60px, -60px) translateZ(1200px) scale(8);
+  }
+}
+
+/* Vortex flash effect */
+.vortex-flash {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 200px;
+  height: 200px;
+  margin: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(200, 210, 255, 0.2) 40%, transparent 70%);
+  opacity: 0;
+  transform: translate(-100px, -100px) scale(0);
+  pointer-events: none;
+  transform-style: preserve-3d;
+}
+
+#tunnel-overlay.active .vortex-flash {
+  animation: vortex-burst 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+}
+
+@keyframes vortex-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-100px, -100px) scale(0);
+  }
+  30% {
+    opacity: 0.8;
+    transform: translate(-100px, -100px) scale(1.5);
+  }
+  60% {
+    opacity: 0.4;
+    transform: translate(-100px, -100px) scale(3);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-100px, -100px) scale(5);
+  }
+}
+
+/* Page fade to black */
+#tunnel-overlay.fade-black {
+  background: rgba(0, 0, 0, 0.95);
+  transition: background 0.3s ease-out;
+}
+
+/* Button animation to center */
+.button-to-center {
+  position: fixed !important;
+  z-index: 10000 !important;
+  pointer-events: none !important;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.3s,
+              scale 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
