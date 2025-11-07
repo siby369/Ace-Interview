@@ -7,6 +7,127 @@ import BackgroundParticles from '@/components/background-particles';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef, useEffect } from 'react';
 
+// Tunnel transition handler
+function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
+    e.preventDefault();
+    
+    const link = e.currentTarget as HTMLElement;
+    const button = link.querySelector('button') as HTMLElement;
+    if (!button) return;
+    
+    // STEP 1: Compute button center FIRST (before any DOM changes)
+    const buttonRect = button.getBoundingClientRect();
+    const cx = buttonRect.left + buttonRect.width / 2;
+    const cy = buttonRect.top + buttonRect.height / 2;
+    
+    // STEP 2: Set CSS variables IMMEDIATELY on both root and overlay
+    document.documentElement.style.setProperty('--tunnel-cx', `${cx}px`);
+    document.documentElement.style.setProperty('--tunnel-cy', `${cy}px`);
+    
+    const overlay = document.getElementById('tunnel-overlay') as HTMLElement;
+    if (overlay) {
+        overlay.style.setProperty('--tunnel-cx', `${cx}px`);
+        overlay.style.setProperty('--tunnel-cy', `${cy}px`);
+        // Force reflow to apply CSS variables
+        void overlay.offsetWidth;
+    }
+    
+    // STEP 3: Get screen center for button animation
+    const screenCenterX = window.innerWidth / 2;
+    const screenCenterY = window.innerHeight / 2;
+    
+    // STEP 4: Calculate translation needed for button animation
+    const translateX = screenCenterX - cx;
+    const translateY = screenCenterY - cy;
+    
+    // STEP 5: Clone button BEFORE hiding original (prevents jumping)
+    const buttonClone = button.cloneNode(true) as HTMLElement;
+    const computedStyle = window.getComputedStyle(button);
+    
+    // Set exact position and dimensions to match original
+    buttonClone.style.position = 'fixed';
+    buttonClone.style.left = `${buttonRect.left}px`;
+    buttonClone.style.top = `${buttonRect.top}px`;
+    buttonClone.style.width = `${buttonRect.width}px`;
+    buttonClone.style.height = `${buttonRect.height}px`;
+    buttonClone.style.margin = '0';
+    buttonClone.style.padding = computedStyle.padding;
+    buttonClone.style.transform = 'translate(0, 0) scale(1)';
+    buttonClone.style.opacity = '1';
+    buttonClone.style.zIndex = '10000';
+    buttonClone.style.pointerEvents = 'none';
+    buttonClone.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.3s';
+    buttonClone.className = button.className;
+    
+    // Append to body (isolated from parent transforms)
+    document.body.appendChild(buttonClone);
+    
+    // STEP 6: Force reflow to ensure clone is positioned correctly
+    void buttonClone.offsetWidth;
+    
+    // STEP 7: Hide original button AFTER clone is positioned
+    button.style.opacity = '0';
+    button.style.pointerEvents = 'none';
+    link.style.pointerEvents = 'none';
+    
+    // STEP 8: Animate button to center (use double RAF for smooth start)
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            buttonClone.style.transform = `translate(${translateX}px, ${translateY}px) scale(0.25)`;
+            buttonClone.style.opacity = '0';
+        });
+    });
+    
+    // STEP 9: After button reaches center, update tunnel center and activate
+    setTimeout(() => {
+        // Update tunnel center to screen center (where button animation ends)
+        const finalCx = screenCenterX;
+        const finalCy = screenCenterY;
+        
+        document.documentElement.style.setProperty('--tunnel-cx', `${finalCx}px`);
+        document.documentElement.style.setProperty('--tunnel-cy', `${finalCy}px`);
+        
+        if (overlay) {
+            overlay.style.setProperty('--tunnel-cx', `${finalCx}px`);
+            overlay.style.setProperty('--tunnel-cy', `${finalCy}px`);
+            
+            // Force reflow to apply new position BEFORE activating
+            void overlay.offsetWidth;
+            
+            // Force reflow on all rings to ensure proper positioning
+            const rings = overlay.querySelectorAll('.tunnel-ring');
+            rings.forEach(ring => {
+                void (ring as HTMLElement).offsetWidth;
+            });
+            
+            // Small delay before activating tunnel (prevents flicker)
+            setTimeout(() => {
+                overlay.classList.add('active');
+                
+                // Fade to black as tunnel progresses
+                setTimeout(() => {
+                    overlay.classList.add('fade-black');
+                }, 600);
+                
+                // Navigate after animation completes
+                setTimeout(() => {
+                    window.location.href = '/interview/new';
+                }, 1800);
+            }, 50);
+        } else {
+            // Fallback
+            window.location.href = '/interview/new';
+        }
+        
+        // Clean up clone
+        setTimeout(() => {
+            if (buttonClone.parentNode) {
+                buttonClone.parentNode.removeChild(buttonClone);
+            }
+        }, 2000);
+    }, 600);
+}
+
 const features = [
     {
         icon: <BrainCircuit size={32} className="text-primary" />,
@@ -237,7 +358,7 @@ export default function Home() {
                                 transition={{ duration: 0.8, ease: 'easeOut', delay: 0.5 }}
                                 className="flex items-center justify-center"
                             >
-                                <Link href="/interview/new">
+                                <Link href="/interview/new" onClick={handleTunnelTransition}>
                                     <Button
                                         size="lg"
                                         className="group relative px-7 h-12 rounded-md bg-white text-black hover:bg-white/95 transition-colors duration-300"
