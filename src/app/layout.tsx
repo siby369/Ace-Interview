@@ -48,6 +48,30 @@ export default function RootLayout({
           {children}
           <Toaster />
         </ThemeProvider>
+        {/* Circular Tunnel Overlay */}
+        <div id="tunnel-overlay">
+          <div className="tunnel-container">
+            {Array.from({ length: 35 }).map((_, i) => {
+              const zDepth = -3000 + (i * 85);
+              const scale = 0.1 + (i * 0.025);
+              const delay = i * 0.03;
+              return (
+                <div
+                  key={i}
+                  className="tunnel-ring"
+                  data-ring-index={i}
+                  style={{
+                    '--ring-z': `${zDepth}px`,
+                    '--ring-scale': scale,
+                    '--ring-delay': `${delay}s`,
+                    animationDelay: `var(--ring-delay)`,
+                  } as React.CSSProperties}
+                />
+              );
+            })}
+            <div className="vortex-flash" />
+          </div>
+        </div>
       </body>
     </html>
   );
