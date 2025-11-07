@@ -110,3 +110,59 @@
     cursor: default;
   }
 }
+
+/* Custom Cursor Styles */
+.custom-cursor {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background: hsl(var(--foreground));
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  transition: transform 0.1s ease-out, width 0.2s ease-out, height 0.2s ease-out;
+}
+
+.custom-cursor.cursor-hover {
+  width: 6px;
+  height: 6px;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.custom-cursor-ring {
+  position: fixed;
+  width: 30px;
+  height: 30px;
+  border: 2px solid hsl(var(--foreground));
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  mix-blend-mode: difference;
+  transition: width 0.2s ease-out, height 0.2s ease-out, border-width 0.2s ease-out;
+}
+
+.custom-cursor-ring.ring-hover {
+  width: 50px;
+  height: 50px;
+  border-width: 1px;
+}
+
+/* Hide default cursor on desktop only */
+@media (hover: hover) and (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+
+  /* Show default cursor for text inputs */
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='search'],
+  input[type='url'],
+  input[type='tel'],
+  input[type='number'],
+  textarea {
+    cursor: text !important;
+  }
+}
