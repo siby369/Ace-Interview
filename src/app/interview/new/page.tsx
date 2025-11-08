@@ -1,12 +1,103 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { RoleSelectionForm } from '@/components/role-selection-form';
 import TopicSelection from '@/components/topic-selection';
 import type { Role } from '@/lib/types';
 import { unslugify, slugify } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+// 3D Tunnel Particles Animation
+const TunnelParticles = () => {
+	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const animationRef = useRef<number | null>(null);
+	const particlesRef = useRef<Array<{ x: number; y: number; z: number; r: number }>>([]);
+
+	useEffect(() => {
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		let width = 0, height = 0, cx = 0, cy = 0;
+		const focalLength = 450;
+		const particleCount = 350;
+		const minZ = 0.6;
+		const maxZ = 6;
+		const speed = 0.01;
+
+		const resize = () => {
+			width = canvas.clientWidth;
+			height = canvas.clientHeight;
+			canvas.width = Math.floor(width * window.devicePixelRatio);
+			canvas.height = Math.floor(height * window.devicePixelRatio);
+			ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+			cx = width / 2;
+			cy = height / 2;
+		};
+
+		const initParticles = () => {
+			particlesRef.current = Array.from({ length: particleCount }).map(() => {
+				const angle = Math.random() * Math.PI * 2;
+				const radius = Math.pow(Math.random(), 1.2) * Math.max(width, height) * 0.3 + 20;
+				return {
+					x: Math.cos(angle) * radius,
+					y: Math.sin(angle) * radius,
+					z: Math.random() * (maxZ - minZ) + minZ,
+					r: Math.random() * 1.0 + 0.3
+				};
+			});
+		};
+
+		const draw = () => {
+			if (!ctx) return;
+			ctx.clearRect(0, 0, width, height);
+
+			// Subtle vignette
+			const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(width, height) * 0.8);
+			grd.addColorStop(0, 'rgba(0,0,0,0)');
+			grd.addColorStop(1, 'rgba(0,0,0,0.3)');
+			ctx.fillStyle = grd;
+			ctx.fillRect(0, 0, width, height);
+
+			// Particles projected toward camera
+			ctx.fillStyle = 'rgba(200,210,255,0.4)';
+			for (const p of particlesRef.current) {
+				p.z -= speed;
+				if (p.z <= minZ) {
+					p.z = maxZ;
+				}
+				const scale = focalLength / (focalLength * p.z);
+				const sx = cx + p.x * scale;
+				const sy = cy + p.y * scale;
+				const radius = Math.max(0.2, p.r * scale * 1.8);
+				if (sx < -50 || sx > width + 50 || sy < -50 || sy > height + 50) continue;
+				ctx.beginPath();
+				ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+				ctx.fill();
+			}
+
+			animationRef.current = requestAnimationFrame(draw);
+		};
+
+		resize();
+		initParticles();
+		animationRef.current = requestAnimationFrame(draw);
+		window.addEventListener('resize', () => {
+			resize();
+			initParticles();
+		});
+
+		return () => {
+			if (animationRef.current) cancelAnimationFrame(animationRef.current);
+		};
+	}, []);
+
+	return (
+		<canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden />
+	);
+};
 
 const topicsByRole: Record<string, Record<string, string[]>> = {
   'software-engineer': {
@@ -346,15 +437,24 @@ export default function NewInterviewPage() {
   const topics = selectedRole ? topicsByRole[roleSlug] || {} : {};
 
   return (
-    <div className="flex flex-col h-screen">
-      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
-        <div className="w-full max-w-4xl mx-auto">
+    <div className="flex flex-col h-screen bg-black">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-hidden">
+        {/* 3D Tunnel Particles Animation */}
+        <TunnelParticles />
+        
+        {/* Subtle background glow matching landing page */}
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-40 blur-[100px] pointer-events-none z-0"
+          style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.08), rgba(0,0,0,0) 70%)' }}
+        />
+        
+        <div className="w-full max-w-4xl mx-auto relative z-10">
           {!selectedRole ? (
             <div className="text-center">
-              <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl">
+              <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl text-white">
                 Step 1: Choose Your Role
               </h1>
-              <p className="mt-4 text-lg text-muted-foreground">
+              <p className="mt-4 text-lg text-white/70">
                 Select a role to begin your mock interview. The questions will be
                 tailored to this position.
               </p>
@@ -362,17 +462,22 @@ export default function NewInterviewPage() {
           ) : (
             <div>
               <div className="flex items-center gap-4">
-                 <Button variant="outline" size="icon" onClick={handleBack}>
+                 <Button 
+                   variant="outline" 
+                   size="icon" 
+                   onClick={handleBack}
+                   className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white"
+                 >
                    <ArrowLeft className="h-4 w-4" />
                  </Button>
                 <div>
-                  <p className="text-lg text-primary font-semibold">{roleName}</p>
-                  <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl">
+                  <p className="text-lg text-white/80 font-semibold">{roleName}</p>
+                  <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl text-white">
                     Step 2: Customize Your Interview
                   </h1>
                 </div>
               </div>
-              <p className="mt-4 text-lg text-muted-foreground ml-14">
+              <p className="mt-4 text-lg text-white/70 ml-14">
                 Select the topics and their difficulty for your mock interview.
               </p>
             </div>
