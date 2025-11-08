@@ -95,7 +95,7 @@ const TunnelParticles = () => {
 	}, []);
 
 	return (
-		<canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden />
+		<canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none" aria-hidden />
 	);
 };
 
@@ -437,18 +437,18 @@ export default function NewInterviewPage() {
   const topics = selectedRole ? topicsByRole[roleSlug] || {} : {};
 
   return (
-    <div className="flex flex-col h-screen bg-black">
-      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-black">
+      <main className="flex-1 flex flex-col items-center p-4 sm:p-6 md:p-8 relative overflow-y-auto">
         {/* 3D Tunnel Particles Animation */}
         <TunnelParticles />
         
         {/* Subtle background glow matching landing page */}
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-40 blur-[100px] pointer-events-none z-0"
+          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-40 blur-[100px] pointer-events-none z-0"
           style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.08), rgba(0,0,0,0) 70%)' }}
         />
         
-        <div className="w-full max-w-4xl mx-auto relative z-10">
+        <div className="w-full max-w-4xl mx-auto relative z-10 py-8">
           {!selectedRole ? (
             <div className="text-center">
               <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl text-white">
@@ -484,15 +484,17 @@ export default function NewInterviewPage() {
           )}
         </div>
 
-        {!selectedRole ? (
-          <RoleSelectionForm onRoleSelect={handleRoleSelect} />
-        ) : (
-          <TopicSelection
-            roleSlug={roleSlug}
-            roleName={roleName}
-            topics={topics}
-          />
-        )}
+        <div className="w-full max-w-4xl mx-auto relative z-10 pb-8">
+          {!selectedRole ? (
+            <RoleSelectionForm onRoleSelect={handleRoleSelect} />
+          ) : (
+            <TopicSelection
+              roleSlug={roleSlug}
+              roleName={roleName}
+              topics={topics}
+            />
+          )}
+        </div>
       </main>
     </div>
   );
