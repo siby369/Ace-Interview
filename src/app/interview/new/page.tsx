@@ -438,7 +438,7 @@ export default function NewInterviewPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-black">
-      <main className="flex-1 flex flex-col items-center p-4 sm:p-6 md:p-8 relative overflow-y-auto">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-y-auto">
         {/* 3D Tunnel Particles Animation */}
         <TunnelParticles />
         
@@ -448,9 +448,9 @@ export default function NewInterviewPage() {
           style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.08), rgba(0,0,0,0) 70%)' }}
         />
         
-        <div className="w-full max-w-4xl mx-auto relative z-10 py-8">
+        <div className="w-full max-w-4xl mx-auto relative z-10 flex flex-col items-center justify-center min-h-full py-8">
           {!selectedRole ? (
-            <div className="text-center">
+            <div className="text-center w-full">
               <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl text-white">
                 Step 1: Choose Your Role
               </h1>
@@ -460,7 +460,7 @@ export default function NewInterviewPage() {
               </p>
             </div>
           ) : (
-            <div>
+            <div className="w-full">
               <div className="flex items-center gap-4">
                  <Button 
                    variant="outline" 
@@ -482,18 +482,18 @@ export default function NewInterviewPage() {
               </p>
             </div>
           )}
-        </div>
 
-        <div className="w-full max-w-4xl mx-auto relative z-10 pb-8">
-          {!selectedRole ? (
-            <RoleSelectionForm onRoleSelect={handleRoleSelect} />
-          ) : (
-            <TopicSelection
-              roleSlug={roleSlug}
-              roleName={roleName}
-              topics={topics}
-            />
-          )}
+          <div className="w-full mt-8">
+            {!selectedRole ? (
+              <RoleSelectionForm onRoleSelect={handleRoleSelect} />
+            ) : (
+              <TopicSelection
+                roleSlug={roleSlug}
+                roleName={roleName}
+                topics={topics}
+              />
+            )}
+          </div>
         </div>
       </main>
     </div>
