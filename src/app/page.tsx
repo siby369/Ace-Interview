@@ -15,6 +15,31 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
     const button = link.querySelector('button') as HTMLElement;
     if (!button) return;
     
+    // Hide background content immediately (particles, glow, etc.)
+    const section = document.querySelector('section');
+    if (section) {
+        section.style.opacity = '0';
+        section.style.transition = 'opacity 0.15s ease-out';
+    }
+    
+    // Hide tunnel particles canvas
+    const canvases = document.querySelectorAll('canvas');
+    canvases.forEach((canvas) => {
+        (canvas as HTMLElement).style.opacity = '0';
+        (canvas as HTMLElement).style.transition = 'opacity 0.15s ease-out';
+    });
+    
+    // Hide any background glows and particles
+    const backgroundElements = document.querySelectorAll('section > div[style*="radial-gradient"], section > div[style*="blur"]');
+    backgroundElements.forEach((el) => {
+        (el as HTMLElement).style.opacity = '0';
+        (el as HTMLElement).style.transition = 'opacity 0.15s ease-out';
+    });
+    
+    // Set background to black immediately
+    document.body.style.backgroundColor = '#000000';
+    document.body.style.transition = 'background-color 0.1s ease-out';
+    
     // STEP 1: Compute button center FIRST (before any DOM changes)
     const buttonRect = button.getBoundingClientRect();
     const cx = buttonRect.left + buttonRect.width / 2;
@@ -64,8 +89,8 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
     buttonClone.style.opacity = '1';
     buttonClone.style.zIndex = '10000';
     buttonClone.style.pointerEvents = 'none';
-    // All transitions happen simultaneously with same easing and duration
-    buttonClone.style.transition = 'transform 0.4s cubic-bezier(0.35, 0.0, 0.25, 1), border-radius 0.4s cubic-bezier(0.35, 0.0, 0.25, 1), opacity 0.12s cubic-bezier(0.35, 0.0, 0.25, 1) 0.28s';
+    // All transitions happen simultaneously with same easing and duration (faster)
+    buttonClone.style.transition = 'transform 0.3s cubic-bezier(0.35, 0.0, 0.25, 1), border-radius 0.3s cubic-bezier(0.35, 0.0, 0.25, 1), opacity 0.1s cubic-bezier(0.35, 0.0, 0.25, 1) 0.2s';
     buttonClone.className = button.className;
     
     // Append to body (isolated from parent transforms)
@@ -86,13 +111,13 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
             // Perfect circle: use 50% border-radius (works for any aspect ratio when scaled)
             buttonClone.style.transform = `translate(${translateX}px, ${translateY}px) scale(0.15)`;
             buttonClone.style.borderRadius = '50%'; // Perfect circle collapse
-            // Fade out during last 30% (starts at 70% = 0.28s of 0.4s total)
+            // Fade out during last 30% (starts at 70% = 0.2s of 0.3s total)
             buttonClone.style.opacity = '0';
         });
     });
     
     // STEP 9: After button reaches center, update tunnel center and activate
-    const buttonAnimationDuration = 400; // 400ms duration
+    const buttonAnimationDuration = 300; // 300ms duration (faster)
     setTimeout(() => {
         // Update tunnel center to screen center (where button animation ends)
         const finalCx = screenCenterX;
@@ -118,15 +143,15 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
             setTimeout(() => {
                 overlay.classList.add('active');
                 
-                // Fade to black as tunnel progresses
+                // Fade to black immediately (faster transition)
                 setTimeout(() => {
                     overlay.classList.add('fade-black');
-                }, 600);
+                }, 300);
                 
-                // Navigate after animation completes
+                // Navigate faster after animation completes
                 setTimeout(() => {
                     window.location.href = '/interview/new';
-                }, 1800);
+                }, 1000);
             }, 50);
         } else {
             // Fallback
@@ -375,8 +400,21 @@ export default function Home() {
                                 <Link href="/interview/new" onClick={handleTunnelTransition}>
                                     <Button
                                         size="lg"
-                                        className="group relative px-7 h-12 rounded-md bg-white text-black hover:bg-white/95 transition-colors duration-300"
+                                        className="group relative px-7 h-12 rounded-md bg-white text-black hover:bg-white/95 transition-all duration-300 active:scale-95 hover:-translate-y-1 hover:scale-[1.02]"
                                         style={{ boxShadow: '0 12px 36px -18px rgba(210,220,255,0.45)' }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.boxShadow = '0 16px 48px -12px rgba(210,220,255,0.6)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.boxShadow = '0 12px 36px -18px rgba(210,220,255,0.45)';
+                                            e.currentTarget.style.transform = 'scale(1) translateY(0)';
+                                        }}
+                                        onMouseDown={(e) => {
+                                            e.currentTarget.style.transform = 'scale(0.95) translateY(0)';
+                                        }}
+                                        onMouseUp={(e) => {
+                                            e.currentTarget.style.transform = 'scale(1.02) translateY(-4px)';
+                                        }}
                                     >
                                         <span className="relative z-10 inline-flex items-center gap-2 font-medium tracking-wide">
                                             Start Your Free Mock Interview
@@ -496,7 +534,7 @@ export default function Home() {
                 className="flex flex-col gap-2 sm:flex-row py-8 w-full shrink-0 items-center justify-center px-4 md:px-6 border-t border-border/50 bg-background/50 backdrop-blur-sm"
             >
                 <p className="text-xs text-muted-foreground">
-                    © 2025 Ace Interview. All rights reserved.
+                    © 2024 Ace Interview. All rights reserved.
                 </p>
             </motion.footer>
         </div>
