@@ -38,12 +38,7 @@ export default function RootLayout({
           poppins.variable
         )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <ThemeProvider>
           <CustomCursor />
           {children}
           <Toaster />
@@ -51,10 +46,10 @@ export default function RootLayout({
         {/* Circular Tunnel Overlay */}
         <div id="tunnel-overlay">
           <div className="tunnel-container">
-            {Array.from({ length: 35 }).map((_, i) => {
-              const zDepth = -3000 + (i * 85);
-              const scale = 0.1 + (i * 0.025);
-              const delay = i * 0.03;
+            {Array.from({ length: 12 }).map((_, i) => {
+              const zDepth = -3000 + (i * 200);
+              const scale = 0.1 + (i * 0.06);
+              const delay = i * 0.05;
               return (
                 <div
                   key={i}

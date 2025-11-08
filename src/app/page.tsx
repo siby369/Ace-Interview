@@ -317,7 +317,7 @@ export default function Home() {
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.6, ease: 'easeOut' }}
-                className="fixed top-0 left-0 right-0 z-50 px-4 lg:px-6 h-16 flex items-center backdrop-blur-xl bg-background/80 border-b border-border/40"
+                className="fixed top-0 left-0 right-0 z-50 px-4 lg:px-6 h-16 flex items-center backdrop-blur-xl bg-background/80"
             >
                 <Link href="#" className="flex items-center justify-center group" prefetch={false}>
                     <motion.div
@@ -451,10 +451,10 @@ export default function Home() {
                 <motion.section
                     style={{ y: featuresY }}
                     id="features"
-                    className="relative w-full py-24 md:py-32 lg:py-40 bg-secondary/50 backdrop-blur-sm"
+                    className="relative w-full py-24 md:py-32 lg:py-40 bg-black"
                 >
                     {/* Subtle gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/5 to-background/10 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/10 pointer-events-none" />
 
                     <div className="container px-4 md:px-6 relative z-10">
                         <motion.div
@@ -470,7 +470,7 @@ export default function Home() {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ duration: 0.6 }}
-                                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter"
+                                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter text-white"
                                 >
                                     Key Features
                                 </motion.h2>
@@ -479,7 +479,7 @@ export default function Home() {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ duration: 0.6, delay: 0.2 }}
-                                    className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-lg/relaxed xl:text-xl/relaxed"
+                                    className="max-w-[900px] text-white/70 md:text-xl/relaxed lg:text-lg/relaxed xl:text-xl/relaxed"
                                 >
                                     Everything you need to prepare, practice, and perform your best on interview day.
                                 </motion.p>
@@ -495,7 +495,7 @@ export default function Home() {
                                     viewport={{ once: true, margin: '-50px' }}
                                     transition={{ duration: 0.6, delay: feature.delay }}
                                     whileHover={{ y: -8, scale: 1.02 }}
-                                    className="group relative p-8 rounded-2xl bg-background/80 backdrop-blur-sm border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
+                                    className="group relative p-8 rounded-2xl bg-black shadow-lg hover:shadow-2xl hover:shadow-white/10 transition-all duration-500 overflow-hidden"
                                 >
                                     {/* Hover gradient effect */}
                                     <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -507,14 +507,14 @@ export default function Home() {
                                         <motion.div
                                             whileHover={{ scale: 1.1, rotate: 5 }}
                                             transition={{ type: 'spring', stiffness: 300 }}
-                                            className="inline-flex p-3 rounded-xl bg-secondary/50 border border-border/30"
+                                            className="inline-flex p-3 rounded-xl bg-black border border-white/20"
                                         >
                                             {feature.icon}
                                         </motion.div>
-                                        <h3 className="text-xl font-bold font-headline group-hover:text-primary transition-colors">
+                                        <h3 className="text-xl font-bold font-headline text-white group-hover:text-white transition-colors">
                                             {feature.title}
                                         </h3>
-                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                        <p className="text-sm text-white/70 leading-relaxed">
                                             {feature.description}
                                         </p>
                                     </div>

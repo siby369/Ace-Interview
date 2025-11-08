@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import React, { useRef, useEffect, useState } from 'react';
 
 interface Particle {
   x: number;
@@ -13,9 +12,15 @@ interface Particle {
 
 const BackgroundParticles: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -31,8 +36,9 @@ const BackgroundParticles: React.FC = () => {
         createParticles();
     }
 
-    const getParticleColor = () => (theme === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)');
-    const getLineColor = () => (theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)');
+    // Always use white particles for dark theme (we force dark theme)
+    const getParticleColor = () => 'rgba(255, 255, 255, 0.5)';
+    const getLineColor = () => 'rgba(255, 255, 255, 0.1)';
 
     const createParticles = () => {
         particles = [];
@@ -99,9 +105,13 @@ const BackgroundParticles: React.FC = () => {
         cancelAnimationFrame(animationFrameId);
     }
 
-  }, [theme]);
+  }, [mounted]);
 
-  return <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full -z-10" />;
+  if (!mounted) {
+    return <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full -z-10" style={{}} />;
+  }
+
+  return <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full -z-10" style={{}} />;
 };
 
 export default BackgroundParticles;
