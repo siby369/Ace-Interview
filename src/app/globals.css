@@ -217,29 +217,31 @@
   --ring-z: -3000px;
   --ring-scale: 0.1;
   --ring-delay: 0s;
-  /* Single translate from container center (0,0) */
-  transform: translate(-60px, -60px) translateZ(var(--ring-z)) scale(var(--ring-scale));
+  /* Single translate from container center (0,0) - start further back and smaller */
+  transform: translate(-60px, -60px) translateZ(-4000px) scale(0.05);
   will-change: transform, opacity;
 }
 
 #tunnel-overlay.active .tunnel-ring {
-  opacity: 1;
   animation: tunnel-ring-forward 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 @keyframes tunnel-ring-forward {
   0% {
-    opacity: 0.15;
+    opacity: 0;
     transform: translate(-60px, -60px) translateZ(var(--ring-z)) scale(var(--ring-scale));
   }
-  20% {
-    opacity: 0.4;
+  10% {
+    opacity: 0.2;
   }
-  50% {
-    opacity: 0.65;
+  30% {
+    opacity: 0.5;
   }
-  80% {
-    opacity: 0.85;
+  60% {
+    opacity: 0.75;
+  }
+  90% {
+    opacity: 0.9;
   }
   100% {
     opacity: 0;
