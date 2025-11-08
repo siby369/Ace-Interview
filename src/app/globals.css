@@ -3,66 +3,37 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
- 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
- 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
- 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
- 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
- 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
- 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
+  /* FORCE DARK THEME - Always dark, no light mode */
+  :root,
+  html {
+    color-scheme: dark;
+    --bg: #000000;
+    --fg: #e5e5e5;
+    --accent: rgba(255,255,255,0.1);
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --muted: rgba(255,255,255,0.6);
+    /* Cursor color will be set dynamically by JS based on system theme */
+    --cursor-color: #ffffff;
+    --invert: 0;
+    
+    /* Keep Tailwind compatibility */
     --background: 0 0% 0%;
-    --foreground: 210 40% 98%;
-
-    --card: 240 5% 10%;
-    --card-foreground: 210 40% 98%;
- 
+    --foreground: 0 0% 90%;
+    --card-foreground: 0 0% 90%;
     --popover: 0 0% 0%;
-    --popover-foreground: 210 40% 98%;
- 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
- 
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 210 40% 98%;
- 
-    --muted: 240 4% 16%;
-    --muted-foreground: 215 20.2% 65.1%;
- 
-    --accent: 240 4% 16%;
-    --accent-foreground: 210 40% 98%;
- 
+    --popover-foreground: 0 0% 90%;
+    --primary: 0 0% 90%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 90%;
+    --muted-foreground: 0 0% 60%;
+    --accent-foreground: 0 0% 90%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
- 
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 210 40% 98%;
+    --destructive-foreground: 0 0% 90%;
+    --input: 0 0% 10%;
+    --ring: 0 0% 90%;
+    --radius: 0.5rem;
   }
 }
 
@@ -70,15 +41,25 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
-  /* Set default cursor */
   html {
+    color-scheme: dark;
     cursor: default;
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-color: var(--bg);
+    color: var(--fg);
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+  
+  /* Auto-invert utility class */
+  .auto-invert {
+    filter: invert(var(--invert, 0));
+    transition: filter 200ms ease;
   }
 
   /* Set cursor for text input elements */
@@ -112,16 +93,24 @@
 }
 
 /* Custom Cursor Styles */
+/* Cursor color is set dynamically by JS based on system theme */
 .custom-cursor {
   position: fixed;
   width: 10px;
   height: 10px;
-  background: hsl(var(--foreground));
+  background: var(--cursor-color);
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
   mix-blend-mode: difference;
-  transition: transform 0.1s ease-out, width 0.2s ease-out, height 0.2s ease-out;
+  transition: transform 0.1s ease-out, width 0.2s ease-out, height 0.2s ease-out, background 200ms ease;
+}
+
+/* Light system: keep mix-blend-mode for white cursor visibility */
+.custom-cursor.cursor-light-system {
+  mix-blend-mode: difference;
+  opacity: 1;
+  background: #ffffff !important;
 }
 
 .custom-cursor.cursor-hover {
@@ -134,12 +123,19 @@
   position: fixed;
   width: 30px;
   height: 30px;
-  border: 2px solid hsl(var(--foreground));
+  border: 2px solid var(--cursor-color);
   border-radius: 50%;
   pointer-events: none;
   z-index: 9998;
   mix-blend-mode: difference;
-  transition: width 0.2s ease-out, height 0.2s ease-out, border-width 0.2s ease-out;
+  transition: width 0.2s ease-out, height 0.2s ease-out, border-width 0.2s ease-out, border-color 200ms ease;
+}
+
+/* Light system: keep mix-blend-mode for white cursor ring visibility */
+.custom-cursor-ring.cursor-light-system {
+  mix-blend-mode: difference;
+  opacity: 1;
+  border-color: #ffffff !important;
 }
 
 .custom-cursor-ring.ring-hover {
@@ -207,7 +203,7 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 1px solid rgba(200, 210, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.6); /* Always white - dark theme only */
   /* Single centering transform - no margins, no double translate */
   left: 0;
   top: 0;

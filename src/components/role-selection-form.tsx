@@ -39,49 +39,40 @@ export function RoleSelectionForm({ onRoleSelect }: RoleSelectionFormProps) {
           <Card
             key={role.name}
             onClick={() => onRoleSelect(role)}
-            className="group h-full transition-all duration-300 ease-in-out cursor-pointer animate-in fade-in-50 relative overflow-hidden bg-white/5 backdrop-blur-sm border-white/10 hover:border-white/20"
+            className="group h-full transition-all duration-300 ease-in-out cursor-pointer animate-in fade-in-50 relative overflow-hidden bg-card/50 backdrop-blur-sm border-2 border-black/20 hover:border-white/40 shadow-lg hover:shadow-2xl hover:shadow-white/10"
             style={{ 
               animationDelay: `${i * 100}ms`,
-              boxShadow: '0 8px 24px -12px rgba(210,220,255,0.2)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 12px 36px -12px rgba(210,220,255,0.4)';
+              e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
+              e.currentTarget.style.boxShadow = '0 20px 40px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 0.05)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 8px 24px -12px rgba(210,220,255,0.2)';
+              e.currentTarget.style.boxShadow = '';
             }}
             onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px) scale(0.98)';
+              e.currentTarget.style.transform = 'translateY(-4px) scale(0.98)';
             }}
             onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)';
+              e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
             }}
           >
-            {/* Subtle inner glow on hover */}
+            {/* Enhanced inner glow on hover */}
             <div 
-              className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-              style={{
-                background: 'radial-gradient(circle at center, rgba(200,220,255,0.08) 0%, transparent 70%)',
-              }}
+              className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-br from-white/10 via-white/5 to-transparent"
             />
-            
-            {/* Subtle border glow */}
+            {/* Subtle border glow effect */}
             <div 
-              className="absolute -inset-[1px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-              style={{
-                background: 'linear-gradient(135deg, rgba(200,220,255,0.1) 0%, transparent 50%)',
-                borderRadius: '0.5rem',
-              }}
+              className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-white/20"
             />
             
             <CardHeader className="relative z-10">
               <role.icon 
-                className="w-8 h-8 text-white/90 mb-2 transition-all duration-300 group-hover:text-white group-hover:scale-110" 
+                className="w-10 h-10 text-white mb-3 transition-all duration-300 group-hover:scale-125 group-hover:rotate-3 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
               />
-              <CardTitle className='font-headline text-white group-hover:text-white'>{role.name}</CardTitle>
-              <CardDescription className="text-white/70 group-hover:text-white/80 transition-colors duration-300">
+              <CardTitle className='font-headline text-white text-xl group-hover:text-white transition-all duration-300'>{role.name}</CardTitle>
+              <CardDescription className="transition-colors duration-300 text-white/70 group-hover:text-white/90">
                 {role.description}
               </CardDescription>
             </CardHeader>

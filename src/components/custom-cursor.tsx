@@ -8,15 +8,58 @@ export function CustomCursor() {
   const [isHovering, setIsHovering] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isLightSystem, setIsLightSystem] = useState(false);
   const ringRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number>();
 
   useEffect(() => {
+    // Detect system theme and set cursor color
+    // Requirements:
+    // - Light system theme → cursor must be WHITE
+    // - Dark system theme → cursor must be WHITE
+    // Both use white cursor which appears white on dark UI via mix-blend-mode: difference
+    const updateCursorColor = () => {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsLightSystem(!prefersDark);
+      // Always use white cursor - appears white on dark UI via difference mode
+      const cursorColor = '#ffffff';
+      document.documentElement.style.setProperty('--cursor-color', cursorColor);
+    };
+
+    // Set initial cursor color
+    updateCursorColor();
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = () => updateCursorColor();
+    
+    // Modern browsers
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleThemeChange);
+    } else {
+      // Fallback for older browsers
+      mediaQuery.addListener(handleThemeChange);
+    }
+
     // Only show custom cursor on desktop devices with mouse
     const hasMouse = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     setIsDesktop(hasMouse);
     
     if (!hasMouse) return;
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleThemeChange);
+      } else {
+        mediaQuery.removeListener(handleThemeChange);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Only run cursor tracking if desktop
+    if (!isDesktop) return;
+    
     let mouseX = 0;
     let mouseY = 0;
     let ringX = 0;
@@ -71,7 +114,7 @@ export function CustomCursor() {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, []);
+  }, [isDesktop]);
 
   if (!isVisible || !isDesktop) return null;
 
@@ -79,7 +122,7 @@ export function CustomCursor() {
     <>
       {/* Main cursor dot */}
       <div
-        className={`custom-cursor ${isHovering ? 'cursor-hover' : ''}`}
+        className={`custom-cursor ${isHovering ? 'cursor-hover' : ''} ${isLightSystem ? 'cursor-light-system' : ''}`}
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
@@ -89,7 +132,7 @@ export function CustomCursor() {
       {/* Outer ring */}
       <div
         ref={ringRef}
-        className={`custom-cursor-ring ${isHovering ? 'ring-hover' : ''}`}
+        className={`custom-cursor-ring ${isHovering ? 'ring-hover' : ''} ${isLightSystem ? 'cursor-light-system' : ''}`}
         style={{
           left: `${ringPosition.x}px`,
           top: `${ringPosition.y}px`,
