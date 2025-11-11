@@ -495,7 +495,7 @@ export default function Home() {
                                     viewport={{ once: true, margin: '-50px' }}
                                     transition={{ duration: 0.6, delay: feature.delay }}
                                     whileHover={{ y: -8, scale: 1.02 }}
-                                    className="group relative p-8 rounded-2xl bg-black shadow-lg hover:shadow-2xl hover:shadow-white/10 transition-all duration-500 overflow-hidden"
+                                    className="group relative p-8 rounded-2xl bg-black border border-primary/20 hover:border-primary/40 shadow-lg hover:shadow-2xl hover:shadow-white/10 transition-all duration-500 overflow-hidden"
                                 >
                                     {/* Hover gradient effect */}
                                     <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
