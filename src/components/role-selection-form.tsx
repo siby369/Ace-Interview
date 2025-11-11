@@ -39,7 +39,7 @@ export function RoleSelectionForm({ onRoleSelect }: RoleSelectionFormProps) {
           <Card
             key={role.name}
             onClick={() => onRoleSelect(role)}
-            className="group h-full transition-all duration-300 ease-in-out cursor-pointer animate-in fade-in-50 relative overflow-hidden bg-card/50 backdrop-blur-sm border-2 border-black/20 hover:border-white/40 shadow-lg hover:shadow-2xl hover:shadow-white/10"
+            className="group h-full transition-all duration-300 ease-in-out cursor-pointer animate-in fade-in-50 relative overflow-hidden bg-card/50 backdrop-blur-sm border-2 border-primary/20 hover:border-primary/40 shadow-lg hover:shadow-2xl hover:shadow-white/10"
             style={{ 
               animationDelay: `${i * 100}ms`,
             }}
