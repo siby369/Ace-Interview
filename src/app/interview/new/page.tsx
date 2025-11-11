@@ -25,7 +25,7 @@ const TunnelParticles = () => {
 		const particleCount = 350;
 		const minZ = 0.6;
 		const maxZ = 6;
-		const speed = 0.01;
+		const speed = 0.003;
 
 		const resize = () => {
 			width = canvas.clientWidth;
