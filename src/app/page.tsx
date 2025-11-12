@@ -224,7 +224,7 @@ const TunnelParticles = () => {
 		const particleCount = 450; // dense but subtle
 		const minZ = 0.6; // near plane
 		const maxZ = 6; // far plane
-		const speed = 0.012; // forward pull speed
+		const speed = 0.003; // forward pull speed
 
 		const resize = () => {
 			width = canvas.clientWidth;
