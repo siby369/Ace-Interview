@@ -448,50 +448,80 @@ export default function NewInterviewPage() {
           style={{ background: 'radial-gradient(closest-side, rgba(255,255,255,0.08), rgba(0,0,0,0) 70%)' }}
         />
         
-        <div className="w-full max-w-4xl mx-auto relative z-10 flex flex-col items-center justify-center min-h-full py-8">
+        <div className="w-full max-w-6xl mx-auto relative z-10 flex flex-col min-h-full py-6 sm:py-8">
+          {/* Split Header: Progress Indicator + Messaging */}
           {!selectedRole ? (
-            <div className="text-center w-full">
-              <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl text-white">
-                Step 1: Choose Your Role
-              </h1>
-              <p className="mt-4 text-lg text-white/70">
-                Select a role to begin your mock interview. The questions will be
-                tailored to this position.
-              </p>
-            </div>
-          ) : (
-            <div className="w-full">
-              <div className="flex items-center gap-4">
-                 <Button 
-                   variant="outline" 
-                   size="icon" 
-                   onClick={handleBack}
-                   className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white"
-                 >
-                   <ArrowLeft className="h-4 w-4" />
-                 </Button>
-                <div>
-                  <p className="text-lg text-white/80 font-semibold">{roleName}</p>
-                  <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl text-white">
-                    Step 2: Customize Your Interview
-                  </h1>
+            <div className="w-full mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
+                    <span className="text-sm font-semibold text-white">1</span>
+                  </div>
+                  <div className="h-px w-12 bg-gradient-to-r from-white/20 to-transparent" />
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10">
+                    <span className="text-sm font-medium text-white/40">2</span>
+                  </div>
                 </div>
               </div>
-              <p className="mt-4 text-lg text-white/70 ml-14">
-                Select the topics and their difficulty for your mock interview.
-              </p>
+              <div className="text-center">
+                <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl text-white mb-4">
+                  Choose Your Role
+                </h1>
+                <p className="text-lg text-white/70 max-w-2xl mx-auto">
+                  Select a role to begin your mock interview. The questions will be
+                  tailored to this position.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={handleBack}
+                    className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white backdrop-blur-sm transition-all"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center gap-3 ml-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
+                      <span className="text-sm font-semibold text-white">1</span>
+                    </div>
+                    <div className="h-px w-12 bg-gradient-to-r from-white/20 via-white/30 to-white/20" />
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm ring-2 ring-primary/50">
+                      <span className="text-sm font-semibold text-white">2</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white/60 mb-1 uppercase tracking-wider">Step 2 of 2</p>
+                <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl text-white mb-2">
+                  Customize Your Interview
+                </h1>
+                <p className="text-lg text-white/70">
+                  Select topics and difficulty levels for <span className="font-semibold text-white/90">{roleName}</span>
+                </p>
+              </div>
             </div>
           )}
 
-          <div className="w-full mt-8">
+          {/* Glassmorphism Content Shell */}
+          <div className="w-full">
             {!selectedRole ? (
-              <RoleSelectionForm onRoleSelect={handleRoleSelect} />
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl">
+                <RoleSelectionForm onRoleSelect={handleRoleSelect} />
+              </div>
             ) : (
-              <TopicSelection
-                roleSlug={roleSlug}
-                roleName={roleName}
-                topics={topics}
-              />
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+                <TopicSelection
+                  roleSlug={roleSlug}
+                  roleName={roleName}
+                  topics={topics}
+                />
+              </div>
             )}
           </div>
         </div>
