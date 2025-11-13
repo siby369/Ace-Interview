@@ -33,15 +33,29 @@ interface RoleSelectionFormProps {
 
 export function RoleSelectionForm({ onRoleSelect }: RoleSelectionFormProps) {
   return (
-    <div className="w-full">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <div className="mt-8 w-full max-w-4xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {roles.map((role, i) => (
           <Card
             key={role.name}
             onClick={() => onRoleSelect(role)}
-            className="group h-full transition-all duration-300 ease-in-out cursor-pointer animate-in fade-in-50 relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/30 shadow-lg hover:shadow-2xl hover:shadow-white/10 hover:-translate-y-1 active:translate-y-0"
+            className="group h-full transition-all duration-300 ease-in-out cursor-pointer animate-in fade-in-50 relative overflow-hidden bg-card/50 backdrop-blur-sm border-2 border-primary/20 hover:border-primary/40 shadow-lg hover:shadow-2xl hover:shadow-white/10"
             style={{ 
               animationDelay: `${i * 100}ms`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
+              e.currentTarget.style.boxShadow = '0 20px 40px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 0.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = '';
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px) scale(0.98)';
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
             }}
           >
             {/* Enhanced inner glow on hover */}
