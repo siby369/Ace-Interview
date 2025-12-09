@@ -456,28 +456,28 @@ export default function NewInterviewPage() {
                 <FloatingOrb className="top-[10%] left-[20%] w-[500px] h-[500px] bg-primary/20 blur-[100px]" delay={0} />
                 <FloatingOrb className="bottom-[10%] right-[20%] w-[600px] h-[600px] bg-indigo-500/10 blur-[120px]" delay={2} />
 
-                <div className="w-full max-w-4xl mx-auto relative z-10 flex flex-col items-center min-h-full py-8">
+                <div className="w-full max-w-7xl mx-auto relative z-10 flex flex-col items-center justify-center min-h-full py-8">
                     {!selectedRole ? (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                            className="text-center w-full mt-10 md:mt-20"
+                            className="text-center w-full"
                         >
-                            <h1 className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl text-white drop-shadow-xl">
+                            <h1 className="text-4xl font-bold font-headline tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-white drop-shadow-xl leading-[1.1]">
                                 Step 1: Choose Your Role
                             </h1>
-                            <p className="mt-4 text-lg text-white/70 max-w-xl mx-auto">
+                            <p className="mt-6 text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
                                 Select a role to begin your mock interview. The questions will be
                                 tailored to this position.
                             </p>
                         </motion.div>
                     ) : (
-                        <div className="w-full">
+                        <div className="w-full max-w-4xl">
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="flex items-center gap-4"
+                                className="flex items-center gap-4 mb-4"
                             >
                                 <Button
                                     variant="outline"
@@ -488,29 +488,32 @@ export default function NewInterviewPage() {
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                                 <div>
-                                    <p className="text-lg text-white/80 font-semibold">{roleName}</p>
-                                    <motion.h1
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.1 }}
-                                        className="text-3xl font-bold font-headline tracking-tight sm:text-4xl text-white drop-shadow-md"
-                                    >
-                                        Step 2: Customize Your Interview
-                                    </motion.h1>
+                                    <p className="text-sm uppercase tracking-wider text-white/60 font-semibold mb-1">Current Role</p>
+                                    <p className="text-xl text-white font-bold font-headline">{roleName}</p>
                                 </div>
                             </motion.div>
+
+                            <motion.h1
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className="text-3xl font-bold font-headline tracking-tight sm:text-4xl md:text-5xl text-white drop-shadow-md leading-tight"
+                            >
+                                Step 2: Customize Your Interview
+                            </motion.h1>
+
                             <motion.p
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="mt-4 text-lg text-white/70 ml-14"
+                                className="mt-4 text-lg text-white/70"
                             >
                                 Select the topics and their difficulty for your mock interview.
                             </motion.p>
                         </div>
                     )}
 
-                    <div className="w-full mt-8">
+                    <div className="w-full mt-12 flex justify-center">
                         {!selectedRole ? (
                             <RoleSelectionForm onRoleSelect={handleRoleSelect} />
                         ) : (
