@@ -9,17 +9,17 @@
  * - ProvideAnswerFeedbackOutput - The return type for the provideAnswerFeedback function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import { getPronunciationFeedback } from './get-pronunciation-feedback';
+import { groq } from '@/ai/groq';
+import { z } from 'zod';
+// import { getPronunciationFeedback } from './get-pronunciation-feedback';
 
 const ProvideAnswerFeedbackInputSchema = z.object({
   jobRole: z.string().describe('The job role for the interview.'),
   interviewQuestion: z.string().describe('The interview question asked.'),
   userAnswerText: z.string().describe("The user's answer to the interview question, either typed or transcribed."),
-   audioDataUri: z.optional(z.string().describe(
-      "A chunk of audio, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
-    )),
+  audioDataUri: z.optional(z.string().describe(
+    "A chunk of audio, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
+  )),
 });
 export type ProvideAnswerFeedbackInput = z.infer<typeof ProvideAnswerFeedbackInputSchema>;
 
@@ -56,30 +56,14 @@ const ProvideAnswerFeedbackOutputSchema = z.object({
 export type ProvideAnswerFeedbackOutput = z.infer<typeof ProvideAnswerFeedbackOutputSchema>;
 
 export async function provideAnswerFeedback(input: ProvideAnswerFeedbackInput): Promise<ProvideAnswerFeedbackOutput> {
-  return provideAnswerFeedbackFlow(input);
-}
+  const { jobRole, interviewQuestion, userAnswerText } = input;
 
-const provideAnswerFeedbackPrompt = ai.definePrompt({
-  name: 'provideAnswerFeedbackPrompt',
-  input: {schema: z.object({
-    jobRole: z.string(),
-    interviewQuestion: z.string(),
-    userAnswerText: z.string(),
-  })},
-  output: {schema: z.object({
-    feedback: z.string(),
-    strengths: z.string(),
-    weaknesses: z.string(),
-    overallScore: z.number(),
-    answerStructure: z.string(),
-    languageAnalysis: z.string(),
-  })},
-  prompt: `You are an AI interview coach providing feedback to a candidate.
+  const prompt = `You are an AI interview coach providing feedback to a candidate.
   Your task is to analyze the user's answer based on its content, structure, and clarity. Do NOT analyze pronunciation, as that is handled separately.
 
-  Job Role: {{{jobRole}}}
-  Interview Question: {{{interviewQuestion}}}
-  User's Answer (transcribed if spoken): {{{userAnswerText}}}
+  Job Role: ${jobRole}
+  Interview Question: ${interviewQuestion}
+  User's Answer (transcribed if spoken): ${userAnswerText}
 
   Provide constructive feedback on the user's answer. Include the following:
   - A general feedback summary.
@@ -87,46 +71,42 @@ const provideAnswerFeedbackPrompt = ai.definePrompt({
   - An overall score (0-100) for the content quality.
   - An analysis of the answer structure (e.g. STAR method, relevance, depth).
   - An analysis of the language used (clarity, tone, filler words).
-  `,
-});
 
-const provideAnswerFeedbackFlow = ai.defineFlow(
+  Return the response as a JSON object with this structure:
   {
-    name: 'provideAnswerFeedbackFlow',
-    inputSchema: ProvideAnswerFeedbackInputSchema,
-    outputSchema: ProvideAnswerFeedbackOutputSchema,
-  },
-  async (input) => {
-    // 1. Get feedback on the answer content
-    const contentFeedbackPromise = provideAnswerFeedbackPrompt({
-        jobRole: input.jobRole,
-        interviewQuestion: input.interviewQuestion,
-        userAnswerText: input.userAnswerText
+    "feedback": "string",
+    "strengths": "string",
+    "weaknesses": "string",
+    "overallScore": number,
+    "answerStructure": "string",
+    "languageAnalysis": "string"
+  }`;
+
+  try {
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.3-70b-versatile',
+      response_format: { type: 'json_object' },
     });
-    
-    // 2. If audio is provided, get pronunciation feedback in parallel
-    let pronunciationFeedbackPromise;
-    if (input.audioDataUri) {
-        pronunciationFeedbackPromise = getPronunciationFeedback({
-            audioDataUri: input.audioDataUri,
-            expectedText: input.userAnswerText
-        });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No content received from Groq');
     }
 
-    // 3. Await both promises
-    const [{ output: contentFeedback }, pronunciationFeedback] = await Promise.all([
-      contentFeedbackPromise,
-      pronunciationFeedbackPromise,
-    ]);
+    const json = JSON.parse(content);
+    // Parse partial content to ensure it matches schema (omitting pronunciation)
+    const partialSchema = ProvideAnswerFeedbackOutputSchema.omit({ pronunciationAnalysis: true });
+    const validatedContent = partialSchema.parse(json);
 
-    if (!contentFeedback) {
-        throw new Error("Failed to generate content feedback.");
-    }
-
-    // 4. Combine the results
+    // Note: Pronunciation feedback is currently disabled during migration to Groq
     return {
-        ...contentFeedback,
-        pronunciationAnalysis: pronunciationFeedback,
+      ...validatedContent,
+      pronunciationAnalysis: undefined,
     };
+
+  } catch (error) {
+    console.error('Error generating answer feedback with Groq:', error);
+    throw error;
   }
-);
+}
