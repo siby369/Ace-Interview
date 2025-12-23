@@ -42,8 +42,8 @@ export function StartButton({ onClick, count, disabled }: StartButtonProps) {
                     </span>
 
                     {/* Ripple Effect Container */}
-                    <div className="absolute inset-0 -z-10 rounded-full overflow-visible">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-20 duration-1000" />
+                    <div className="absolute inset-0 -z-10 rounded-full overflow-visible pointer-events-none flex items-center justify-center">
+                        <span className="block h-full w-full animate-ping rounded-full bg-white opacity-20 duration-1000" />
                     </div>
                 </Button>
             </motion.div>
