@@ -434,6 +434,32 @@ export default function NewInterviewPage() {
         }
     }, [selectedRole]);
 
+    // Clear tunnel overlay on mount and when going back
+    useEffect(() => {
+        const overlay = document.getElementById('tunnel-overlay');
+        if (overlay) {
+            overlay.classList.remove('active', 'fade-black');
+            overlay.style.opacity = '0';
+        }
+
+        // Reset body background
+        document.body.style.backgroundColor = '';
+
+        // Reset any hidden sections
+        const sections = document.querySelectorAll('section');
+        sections.forEach((section) => {
+            (section as HTMLElement).style.opacity = '';
+            (section as HTMLElement).style.transition = '';
+        });
+
+        // Reset canvases
+        const canvases = document.querySelectorAll('canvas');
+        canvases.forEach((canvas) => {
+            (canvas as HTMLElement).style.opacity = '';
+            (canvas as HTMLElement).style.transition = '';
+        });
+    }, [selectedRole]);
+
     const handleRoleSelect = (role: Role) => {
         setSelectedRole(role);
     };
