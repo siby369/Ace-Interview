@@ -10,45 +10,45 @@ import { useRef, useEffect, useState } from 'react';
 // Tunnel transition handler
 function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    
+
     const link = e.currentTarget as HTMLElement;
     const button = link.querySelector('button') as HTMLElement;
     if (!button) return;
-    
+
     // Hide background content immediately (particles, glow, etc.)
     const section = document.querySelector('section');
     if (section) {
         section.style.opacity = '0';
         section.style.transition = 'opacity 0.15s ease-out';
     }
-    
+
     // Hide tunnel particles canvas
     const canvases = document.querySelectorAll('canvas');
     canvases.forEach((canvas) => {
         (canvas as HTMLElement).style.opacity = '0';
         (canvas as HTMLElement).style.transition = 'opacity 0.15s ease-out';
     });
-    
+
     // Hide any background glows and particles
     const backgroundElements = document.querySelectorAll('section > div[style*="radial-gradient"], section > div[style*="blur"]');
     backgroundElements.forEach((el) => {
         (el as HTMLElement).style.opacity = '0';
         (el as HTMLElement).style.transition = 'opacity 0.15s ease-out';
     });
-    
+
     // Set background to black immediately
     document.body.style.backgroundColor = '#000000';
     document.body.style.transition = 'background-color 0.1s ease-out';
-    
+
     // STEP 1: Compute button center FIRST (before any DOM changes)
     const buttonRect = button.getBoundingClientRect();
     const cx = buttonRect.left + buttonRect.width / 2;
     const cy = buttonRect.top + buttonRect.height / 2;
-    
+
     // STEP 2: Set CSS variables IMMEDIATELY on both root and overlay
     document.documentElement.style.setProperty('--tunnel-cx', `${cx}px`);
     document.documentElement.style.setProperty('--tunnel-cy', `${cy}px`);
-    
+
     const overlay = document.getElementById('tunnel-overlay') as HTMLElement;
     if (overlay) {
         overlay.style.setProperty('--tunnel-cx', `${cx}px`);
@@ -56,24 +56,24 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
         // Force reflow to apply CSS variables
         void overlay.offsetWidth;
     }
-    
+
     // STEP 3: Get screen center for button animation
     const screenCenterX = window.innerWidth / 2;
     const screenCenterY = window.innerHeight / 2;
-    
+
     // STEP 4: Calculate translation needed for button animation
     const translateX = screenCenterX - cx;
     const translateY = screenCenterY - cy;
-    
+
     // STEP 5: Clone button BEFORE hiding original (prevents jumping)
     const buttonClone = button.cloneNode(true) as HTMLElement;
     const computedStyle = window.getComputedStyle(button);
-    
+
     // Set exact position and dimensions to match original
     const buttonWidth = buttonRect.width;
     const buttonHeight = buttonRect.height;
     const maxDimension = Math.max(buttonWidth, buttonHeight);
-    
+
     buttonClone.style.position = 'fixed';
     buttonClone.style.left = `${buttonRect.left}px`;
     buttonClone.style.top = `${buttonRect.top}px`;
@@ -92,18 +92,18 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
     // All transitions happen simultaneously with same easing and duration (faster)
     buttonClone.style.transition = 'transform 0.3s cubic-bezier(0.35, 0.0, 0.25, 1), border-radius 0.3s cubic-bezier(0.35, 0.0, 0.25, 1), opacity 0.1s cubic-bezier(0.35, 0.0, 0.25, 1) 0.2s';
     buttonClone.className = button.className;
-    
+
     // Append to body (isolated from parent transforms)
     document.body.appendChild(buttonClone);
-    
+
     // STEP 6: Force reflow to ensure clone is positioned correctly
     void buttonClone.offsetWidth;
-    
+
     // STEP 7: Hide original button AFTER clone is positioned
     button.style.opacity = '0';
     button.style.pointerEvents = 'none';
     link.style.pointerEvents = 'none';
-    
+
     // STEP 8: Animate button to center with simultaneous shrink to circle
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -115,39 +115,39 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
             buttonClone.style.opacity = '0';
         });
     });
-    
+
     // STEP 9: After button reaches center, update tunnel center and activate
     const buttonAnimationDuration = 300; // 300ms duration (faster)
     setTimeout(() => {
         // Update tunnel center to screen center (where button animation ends)
         const finalCx = screenCenterX;
         const finalCy = screenCenterY;
-        
+
         document.documentElement.style.setProperty('--tunnel-cx', `${finalCx}px`);
         document.documentElement.style.setProperty('--tunnel-cy', `${finalCy}px`);
-        
+
         if (overlay) {
             overlay.style.setProperty('--tunnel-cx', `${finalCx}px`);
             overlay.style.setProperty('--tunnel-cy', `${finalCy}px`);
-            
+
             // Force reflow to apply new position BEFORE activating
             void overlay.offsetWidth;
-            
+
             // Force reflow on all rings to ensure proper positioning
             const rings = overlay.querySelectorAll('.tunnel-ring');
             rings.forEach(ring => {
                 void (ring as HTMLElement).offsetWidth;
             });
-            
+
             // Small delay before activating tunnel (prevents flicker)
             setTimeout(() => {
                 overlay.classList.add('active');
-                
+
                 // Fade to black immediately (faster transition)
                 setTimeout(() => {
                     overlay.classList.add('fade-black');
                 }, 300);
-                
+
                 // Navigate faster after animation completes
                 setTimeout(() => {
                     window.location.href = '/interview/new';
@@ -157,7 +157,7 @@ function handleTunnelTransition(e: React.MouseEvent<HTMLAnchorElement>) {
             // Fallback
             window.location.href = '/interview/new';
         }
-        
+
         // Clean up clone
         setTimeout(() => {
             if (buttonClone.parentNode) {
@@ -193,7 +193,7 @@ const FloatingOrb = ({ delay = 0, className = '' }: { delay?: number; className?
     // Add subtle randomness to create organic feel
     const baseDuration = 7.5 + Math.random() * 2.5 + delay;
     const jitterAmount = 2 + Math.random() * 3;
-    
+
     return (
         <motion.div
             className={`absolute rounded-full blur-3xl opacity-20 ${className}`}
@@ -218,109 +218,148 @@ const FloatingOrb = ({ delay = 0, className = '' }: { delay?: number; className?
 
 // Tunnel-like particle field converging toward the center glow
 const TunnelParticles = () => {
-	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const animationRef = useRef<number | null>(null);
-	const particlesRef = useRef<Array<{ x: number; y: number; z: number; r: number }>>([]);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const animationRef = useRef<number | null>(null);
+    const particlesRef = useRef<Array<{ x: number; y: number; z: number; r: number }>>([]);
 
-	useEffect(() => {
-		const canvas = canvasRef.current;
-		if (!canvas) return;
-		const ctx = canvas.getContext('2d');
-		if (!ctx) return;
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-		let width = 0, height = 0, cx = 0, cy = 0;
-		const focalLength = 450; // controls perspective depth
-		const particleCount = 450; // dense but subtle
-		const minZ = 0.6; // near plane
-		const maxZ = 6; // far plane
-		const baseSpeed = 0.003; // forward pull speed
+        let width = 0, height = 0, cx = 0, cy = 0;
+        const focalLength = 450; // controls perspective depth
+        const particleCount = 450; // dense but subtle
+        const minZ = 0.6; // near plane
+        const maxZ = 6; // far plane
+        const baseSpeed = 0.003; // forward pull speed
 
-		const resize = () => {
-			width = canvas.clientWidth;
-			height = canvas.clientHeight;
-			canvas.width = Math.floor(width * window.devicePixelRatio);
-			canvas.height = Math.floor(height * window.devicePixelRatio);
-			ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-			cx = width / 2;
-			cy = height / 2;
-		};
+        const resize = () => {
+            width = canvas.clientWidth;
+            height = canvas.clientHeight;
+            canvas.width = Math.floor(width * window.devicePixelRatio);
+            canvas.height = Math.floor(height * window.devicePixelRatio);
+            ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+            cx = width / 2;
+            cy = height / 2;
+        };
 
-		const initParticles = () => {
-			particlesRef.current = Array.from({ length: particleCount }).map(() => {
-				const angle = Math.random() * Math.PI * 2;
-				const radius = Math.pow(Math.random(), 1.2) * Math.max(width, height) * 0.35 + 20;
-				// Vary particle sizes more dramatically for organic feel
-				const sizeVariation = Math.random();
-				const baseRadius = sizeVariation < 0.1 ? 0.3 : sizeVariation < 0.4 ? 0.6 : sizeVariation < 0.7 ? 1.0 : 1.8;
-				return {
-					x: Math.cos(angle) * radius,
-					y: Math.sin(angle) * radius,
-					z: Math.random() * (maxZ - minZ) + minZ,
-					r: baseRadius + Math.random() * 0.4,
-					speed: baseSpeed * (0.7 + Math.random() * 0.6) // Vary speed for organic movement
-				};
-			});
-		};
+        const initParticles = () => {
+            particlesRef.current = Array.from({ length: particleCount }).map(() => {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.pow(Math.random(), 1.2) * Math.max(width, height) * 0.35 + 20;
+                // Vary particle sizes more dramatically for organic feel
+                const sizeVariation = Math.random();
+                const baseRadius = sizeVariation < 0.1 ? 0.3 : sizeVariation < 0.4 ? 0.6 : sizeVariation < 0.7 ? 1.0 : 1.8;
+                return {
+                    x: Math.cos(angle) * radius,
+                    y: Math.sin(angle) * radius,
+                    z: Math.random() * (maxZ - minZ) + minZ,
+                    r: baseRadius + Math.random() * 0.4,
+                    speed: baseSpeed * (0.7 + Math.random() * 0.6) // Vary speed for organic movement
+                };
+            });
+        };
 
-		const draw = () => {
-			if (!ctx) return;
-			ctx.clearRect(0, 0, width, height);
+        const draw = () => {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, width, height);
 
-			// subtle vignette to help the tunnel read
-			const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(width, height) * 0.8);
-			grd.addColorStop(0, 'rgba(0,0,0,0)');
-			grd.addColorStop(1, 'rgba(0,0,0,0.4)');
-			ctx.fillStyle = grd;
-			ctx.fillRect(0, 0, width, height);
+            // subtle vignette to help the tunnel read
+            const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(width, height) * 0.8);
+            grd.addColorStop(0, 'rgba(0,0,0,0)');
+            grd.addColorStop(1, 'rgba(0,0,0,0.4)');
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, width, height);
 
-			// particles projected toward camera with varied speeds
-			ctx.fillStyle = 'rgba(230,235,255,0.55)';
-			for (const p of particlesRef.current) {
-				const particleSpeed = (p as any).speed || baseSpeed;
-				p.z -= particleSpeed;
-				if (p.z <= minZ) {
-					p.z = maxZ;
-					// Add slight randomness when resetting for organic feel
-					p.x += (Math.random() - 0.5) * 10;
-					p.y += (Math.random() - 0.5) * 10;
-				}
-				const scale = focalLength / (focalLength * p.z);
-				const sx = cx + p.x * scale;
-				const sy = cy + p.y * scale;
-				const radius = Math.max(0.3, p.r * scale * 2.0);
-				// Vary opacity slightly for depth
-				const opacity = 0.45 + (p.z / maxZ) * 0.15;
-				if (sx < -50 || sx > width + 50 || sy < -50 || sy > height + 50) continue;
-				ctx.globalAlpha = opacity;
-				ctx.beginPath();
-				ctx.arc(sx, sy, radius, 0, Math.PI * 2);
-				ctx.fill();
-				ctx.globalAlpha = 1.0;
-			}
+            // particles projected toward camera with varied speeds
+            ctx.fillStyle = 'rgba(230,235,255,0.55)';
+            for (const p of particlesRef.current) {
+                const particleSpeed = (p as any).speed || baseSpeed;
+                p.z -= particleSpeed;
+                if (p.z <= minZ) {
+                    p.z = maxZ;
+                    // Add slight randomness when resetting for organic feel
+                    p.x += (Math.random() - 0.5) * 10;
+                    p.y += (Math.random() - 0.5) * 10;
+                }
+                const scale = focalLength / (focalLength * p.z);
+                const sx = cx + p.x * scale;
+                const sy = cy + p.y * scale;
+                const radius = Math.max(0.3, p.r * scale * 2.0);
+                // Vary opacity slightly for depth
+                const opacity = 0.45 + (p.z / maxZ) * 0.15;
+                if (sx < -50 || sx > width + 50 || sy < -50 || sy > height + 50) continue;
+                ctx.globalAlpha = opacity;
+                ctx.beginPath();
+                ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
 
-			animationRef.current = requestAnimationFrame(draw);
-		};
+            animationRef.current = requestAnimationFrame(draw);
+        };
 
-		resize();
-		initParticles();
-		animationRef.current = requestAnimationFrame(draw);
-		window.addEventListener('resize', () => {
-			resize();
-			initParticles();
-		});
+        resize();
+        initParticles();
+        animationRef.current = requestAnimationFrame(draw);
+        window.addEventListener('resize', () => {
+            resize();
+            initParticles();
+        });
 
-		return () => {
-			if (animationRef.current) cancelAnimationFrame(animationRef.current);
-		};
-	}, []);
+        return () => {
+            if (animationRef.current) cancelAnimationFrame(animationRef.current);
+        };
+    }, []);
 
-	return (
-		<canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden />
-	);
+    return (
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden />
+    );
 };
 
 export default function Home() {
     const containerRef = useRef<HTMLDivElement>(null);
+
+    // RESET UI STATE ON MOUNT (Handles Production BFCache / Back Button)
+    useEffect(() => {
+        const resetGlobalUI = () => {
+            // Reset tunnel overlay
+            const overlay = document.getElementById('tunnel-overlay');
+            if (overlay) {
+                overlay.classList.remove('active', 'fade-black');
+            }
+
+            // Reset body
+            document.body.style.backgroundColor = '';
+
+            // Restore visibility to sections and canvases
+            const sections = document.querySelectorAll('section');
+            sections.forEach((s) => {
+                (s as HTMLElement).style.opacity = '1';
+                (s as HTMLElement).style.transition = '';
+            });
+
+            const canvases = document.querySelectorAll('canvas');
+            canvases.forEach((c) => {
+                (c as HTMLElement).style.opacity = '1';
+                (c as HTMLElement).style.transition = '';
+            });
+        };
+
+        resetGlobalUI();
+
+        // Handle browser Back/Forward cache restores
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                resetGlobalUI();
+            }
+        });
+
+        return () => window.removeEventListener('pageshow', resetGlobalUI);
+    }, []);
+
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const { scrollYProgress } = useScroll({
         target: containerRef,
@@ -340,11 +379,11 @@ export default function Home() {
     const heroY = useTransform(scrollYProgress, [0, 1], [0, -100]);
     const glowScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
     const featuresY = useTransform(scrollYProgress, [0, 0.5], [0, 50]);
-    
+
     // Cursor-reactive glow position with spring physics
     const glowX = useSpring(useMotionValue(mousePosition.x), { stiffness: 50, damping: 20 });
     const glowY = useSpring(useMotionValue(mousePosition.y), { stiffness: 50, damping: 20 });
-    
+
     useEffect(() => {
         glowX.set(mousePosition.x);
         glowY.set(mousePosition.y);
@@ -397,16 +436,16 @@ export default function Home() {
             <main className="flex-1 relative">
                 {/* Subtle noise texture overlay */}
                 <div className="noise-overlay" />
-                
+
                 {/* Immersive tunnel hero */}
                 <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden pt-16 bg-black">
                     {/* Center glow that expands slightly on scroll - more organic */}
                     <motion.div aria-hidden className="absolute inset-0" style={{ scale: glowScale }}>
                         <div
                             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] opacity-60 blur-[120px]"
-                            style={{ 
+                            style={{
                                 borderRadius: '45%',
-                                background: 'radial-gradient(ellipse closest-side, rgba(255,255,255,0.08), rgba(255,255,255,0.03) 50%, rgba(0,0,0,0) 75%)' 
+                                background: 'radial-gradient(ellipse closest-side, rgba(255,255,255,0.08), rgba(255,255,255,0.03) 50%, rgba(0,0,0,0) 75%)'
                             }}
                         />
                         {/* Additional subtle glow layer for depth */}
@@ -415,16 +454,16 @@ export default function Home() {
                             style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.05), transparent 60%)' }}
                         />
                     </motion.div>
-                    
+
                     {/* Cursor-reactive subtle glow */}
                     <motion.div
                         className="absolute w-[600px] h-[600px] rounded-full blur-[100px] pointer-events-none"
                         style={{
                             background: 'radial-gradient(circle, rgba(255,255,255,0.03), transparent 70%)',
                             mixBlendMode: 'screen',
+                            x: useTransform(glowX, (x) => x - 300),
+                            y: useTransform(glowY, (y) => y - 300),
                         }}
-                        x={useTransform(glowX, (x) => x - 300)}
-                        y={useTransform(glowY, (y) => y - 300)}
                         animate={{
                             opacity: [0, 0.12, 0],
                         }}
@@ -449,7 +488,7 @@ export default function Home() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
                                 className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-headline leading-[1.08]"
-                                style={{ 
+                                style={{
                                     textShadow: '0 2px 8px rgba(0,0,0,0.3), 0 0 1px rgba(255,255,255,0.1)',
                                     letterSpacing: '-0.02em'
                                 }}
@@ -479,7 +518,7 @@ export default function Home() {
                                     <Button
                                         size="lg"
                                         className="group relative px-8 h-12 rounded-lg bg-white text-black hover:bg-white/95 transition-all duration-300 active:scale-[0.96] hover:-translate-y-0.5 hover:scale-[1.01]"
-                                        style={{ 
+                                        style={{
                                             boxShadow: '0 12px 36px -18px rgba(210,220,255,0.45)',
                                             borderRadius: '0.5rem'
                                         }}
@@ -554,7 +593,7 @@ export default function Home() {
                                     viewport={{ once: true }}
                                     transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
                                     className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter text-white"
-                                    style={{ 
+                                    style={{
                                         textShadow: '0 2px 8px rgba(0,0,0,0.3)',
                                         letterSpacing: '-0.03em'
                                     }}
@@ -584,14 +623,14 @@ export default function Home() {
                                     transition={{ duration: 0.65, delay: feature.delay, ease: [0.16, 1, 0.3, 1] }}
                                     whileHover={{ y: -6, scale: 1.015 }}
                                     className="group relative p-9 rounded-2xl bg-black border border-primary/20 hover:border-primary/40 shadow-lg hover:shadow-2xl hover:shadow-white/10 transition-all duration-500 overflow-hidden"
-                                    style={{ 
+                                    style={{
                                         borderRadius: i === 1 ? '1.5rem' : '1.75rem', // Subtle asymmetry
                                         opacity: 0.98 + (i * 0.01) // Slight opacity variation
                                     }}
                                 >
                                     {/* Hover gradient effect */}
                                     <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    
+
                                     {/* Subtle glow on hover */}
                                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 rounded-2xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-500" />
 

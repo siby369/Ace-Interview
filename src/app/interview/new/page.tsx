@@ -436,28 +436,33 @@ export default function NewInterviewPage() {
 
     // Clear tunnel overlay on mount and when going back
     useEffect(() => {
-        const overlay = document.getElementById('tunnel-overlay');
-        if (overlay) {
-            overlay.classList.remove('active', 'fade-black');
-            overlay.style.opacity = '0';
-        }
+        const cleanupUI = () => {
+            const overlay = document.getElementById('tunnel-overlay');
+            if (overlay) {
+                overlay.classList.remove('active', 'fade-black');
+                overlay.style.opacity = '0';
+            }
 
-        // Reset body background
-        document.body.style.backgroundColor = '';
+            // Reset body background
+            document.body.style.backgroundColor = '';
 
-        // Reset any hidden sections
-        const sections = document.querySelectorAll('section');
-        sections.forEach((section) => {
-            (section as HTMLElement).style.opacity = '';
-            (section as HTMLElement).style.transition = '';
-        });
+            // Reset any hidden sections or main containers
+            const restoreElements = document.querySelectorAll('section, main, canvas');
+            restoreElements.forEach((el) => {
+                const htmlEl = el as HTMLElement;
+                // If it was hidden by our transition styles, bring it back
+                if (htmlEl.style.opacity === '0') {
+                    htmlEl.style.opacity = '1';
+                    htmlEl.style.transition = '';
+                }
+            });
+        };
 
-        // Reset canvases
-        const canvases = document.querySelectorAll('canvas');
-        canvases.forEach((canvas) => {
-            (canvas as HTMLElement).style.opacity = '';
-            (canvas as HTMLElement).style.transition = '';
-        });
+        cleanupUI();
+
+        // Production-specific fallback: ensure it runs after any lingering animations
+        const timer = setTimeout(cleanupUI, 100);
+        return () => clearTimeout(timer);
     }, [selectedRole]);
 
     const handleRoleSelect = (role: Role) => {
