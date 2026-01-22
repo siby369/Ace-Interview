@@ -334,17 +334,16 @@ export default function Home() {
             // Reset body
             document.body.style.backgroundColor = '';
 
-            // Restore visibility to sections and canvases
-            const sections = document.querySelectorAll('section');
-            sections.forEach((s) => {
-                (s as HTMLElement).style.opacity = '1';
-                (s as HTMLElement).style.transition = '';
-            });
-
-            const canvases = document.querySelectorAll('canvas');
-            canvases.forEach((c) => {
-                (c as HTMLElement).style.opacity = '1';
-                (c as HTMLElement).style.transition = '';
+            // Restore visibility to sections, canvases, buttons, links, and glows
+            // This ensures the "Start Interview" button is visible again when coming back
+            const elementsToRestore = document.querySelectorAll('section, canvas, button, a, section > div');
+            elementsToRestore.forEach((el) => {
+                const htmlEl = el as HTMLElement;
+                if (htmlEl.style.opacity === '0') {
+                    htmlEl.style.opacity = '';
+                    htmlEl.style.pointerEvents = '';
+                    htmlEl.style.transition = '';
+                }
             });
         };
 
