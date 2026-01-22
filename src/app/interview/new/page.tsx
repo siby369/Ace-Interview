@@ -440,7 +440,7 @@ export default function NewInterviewPage() {
             const overlay = document.getElementById('tunnel-overlay');
             if (overlay) {
                 overlay.classList.remove('active', 'fade-black');
-                overlay.style.opacity = '0';
+                overlay.style.opacity = ''; // Clear inline style so CSS classes can work
             }
 
             // Reset body background

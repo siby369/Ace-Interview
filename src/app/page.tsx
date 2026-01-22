@@ -325,25 +325,32 @@ export default function Home() {
     // RESET UI STATE ON MOUNT (Handles Production BFCache / Back Button)
     useEffect(() => {
         const resetGlobalUI = () => {
-            // Reset tunnel overlay
+            // 1. Reset tunnel overlay
             const overlay = document.getElementById('tunnel-overlay');
             if (overlay) {
                 overlay.classList.remove('active', 'fade-black');
+                overlay.style.opacity = ''; // Clear inline style to allow CSS classes to work
             }
 
-            // Reset body
+            // 2. Reset body
             document.body.style.backgroundColor = '';
 
-            // Restore visibility to sections, canvases, buttons, links, and glows
-            // This ensures the "Start Interview" button is visible again when coming back
+            // 3. Restore visibility and INTERACTIVITY to main elements
+            // This fixes the "button not doing anything" issue by resetting pointer-events
             const elementsToRestore = document.querySelectorAll('section, canvas, button, a, section > div');
             elementsToRestore.forEach((el) => {
                 const htmlEl = el as HTMLElement;
-                if (htmlEl.style.opacity === '0') {
-                    htmlEl.style.opacity = '';
-                    htmlEl.style.pointerEvents = '';
-                    htmlEl.style.transition = '';
-                }
+                // Force restoration of interaction
+                htmlEl.style.opacity = '';
+                htmlEl.style.pointerEvents = '';
+                htmlEl.style.transition = '';
+            });
+
+            // 4. Specifically ensure the original button is visible if it was hidden
+            const startButtons = document.querySelectorAll('button');
+            startButtons.forEach(btn => {
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
             });
         };
 
