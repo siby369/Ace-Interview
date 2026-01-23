@@ -44,7 +44,7 @@
     "genkit": "^1.14.1",
     "groq-sdk": "^0.37.0",
     "lucide-react": "^0.475.0",
-    "next": "^16.0.8",
+    "next": "16.0.10",
     "next-themes": "^0.3.0",
     "patch-package": "^8.0.0",
     "react": "^18.3.1",
