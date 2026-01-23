@@ -98,6 +98,7 @@ export function TopicCard({
                 {/* Expandable Difficulty Selector */}
                 <div
                     onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className={cn("transition-all duration-300 overflow-hidden", isSelected ? "max-h-20 opacity-100" : "max-h-0 opacity-0")}
                 >
                     <div className="pt-2">
