@@ -2,6 +2,7 @@
 
 import { getPronunciationFeedback } from '@/ai/flows/get-pronunciation-feedback';
 import type { PronunciationFeedback } from '@/lib/types';
+import { getSecureRandomInt } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle, Mic, RefreshCw, Square } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -89,13 +90,13 @@ export default function PronunciationPractice() {
       setIsRecording(false);
     }
   };
-  
+
   const handleNewSentence = () => {
     setFeedback(null);
     setIsLoading(false);
     let newSentence = currentSentence;
-    while(newSentence === currentSentence) {
-        newSentence = practiceSentences[Math.floor(Math.random() * practiceSentences.length)];
+    while (newSentence === currentSentence) {
+      newSentence = practiceSentences[getSecureRandomInt(0, practiceSentences.length)];
     }
     setCurrentSentence(newSentence);
   }
@@ -113,7 +114,7 @@ export default function PronunciationPractice() {
           <div className='flex justify-between items-center mb-4'>
             <h2 className="text-lg font-semibold">Sentence to Read:</h2>
             <Button variant="outline" size="sm" onClick={handleNewSentence}>
-              <RefreshCw className="mr-2 h-4 w-4"/>
+              <RefreshCw className="mr-2 h-4 w-4" />
               New Sentence
             </Button>
           </div>
@@ -141,55 +142,55 @@ export default function PronunciationPractice() {
       </div>
 
       {isLoading && (
-         <div className="w-full flex flex-col items-center justify-center text-center gap-4 p-8 rounded-lg border border-dashed">
-            <LoaderCircle className="h-12 w-12 animate-spin text-primary" />
-            <h3 className="text-xl font-semibold font-headline">
-              Analyzing your pronunciation...
-            </h3>
-            <p className="text-muted-foreground">The AI is comparing your speech to the text. Hang tight!</p>
-          </div>
+        <div className="w-full flex flex-col items-center justify-center text-center gap-4 p-8 rounded-lg border border-dashed">
+          <LoaderCircle className="h-12 w-12 animate-spin text-primary" />
+          <h3 className="text-xl font-semibold font-headline">
+            Analyzing your pronunciation...
+          </h3>
+          <p className="text-muted-foreground">The AI is comparing your speech to the text. Hang tight!</p>
+        </div>
       )}
 
       {feedback && !isLoading && (
         <Card className="animate-in fade-in-50 duration-500">
           <CardContent className="p-6 space-y-6">
             <div>
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold text-lg">Overall Score</h3>
-                    <span className="font-bold text-xl text-primary">{feedback.overallScore}/100</span>
-                </div>
-                <Progress value={feedback.overallScore} className={`h-3 ${getScoreColorClass(feedback.overallScore)}`} />
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold text-lg">Overall Score</h3>
+                <span className="font-bold text-xl text-primary">{feedback.overallScore}/100</span>
+              </div>
+              <Progress value={feedback.overallScore} className={`h-3 ${getScoreColorClass(feedback.overallScore)}`} />
             </div>
-            
+
             <div className="space-y-2">
-                <h3 className="font-semibold text-lg">Your Pronunciation:</h3>
-                <p className='text-lg p-4 rounded-md bg-secondary'>
-                    {feedback.wordLevelFeedback.map((word, index) => (
-                        <span key={index} className={!word.isCorrect ? 'text-destructive font-bold underline' : 'text-accent-foreground'}>
-                            {word.word}{' '}
-                        </span>
-                    ))}
-                </p>
+              <h3 className="font-semibold text-lg">Your Pronunciation:</h3>
+              <p className='text-lg p-4 rounded-md bg-secondary'>
+                {feedback.wordLevelFeedback.map((word, index) => (
+                  <span key={index} className={!word.isCorrect ? 'text-destructive font-bold underline' : 'text-accent-foreground'}>
+                    {word.word}{' '}
+                  </span>
+                ))}
+              </p>
             </div>
-            
+
             <div className="space-y-2">
-                <h3 className="font-semibold text-lg">AI Coach Feedback:</h3>
-                <p className="text-muted-foreground">{feedback.generalFeedback}</p>
+              <h3 className="font-semibold text-lg">AI Coach Feedback:</h3>
+              <p className="text-muted-foreground">{feedback.generalFeedback}</p>
             </div>
 
             {feedback.wordLevelFeedback.some(w => !w.isCorrect) && (
-                 <div className="space-y-3">
-                    <h3 className="font-semibold text-lg">Suggestions for Mispronounced Words:</h3>
-                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                        {feedback.wordLevelFeedback.filter(w => !w.isCorrect && w.feedback).map((word, index) => (
-                            <li key={index}>
-                                <span className='font-bold text-foreground'>{word.word}:</span> {word.feedback}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg">Suggestions for Mispronounced Words:</h3>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                  {feedback.wordLevelFeedback.filter(w => !w.isCorrect && w.feedback).map((word, index) => (
+                    <li key={index}>
+                      <span className='font-bold text-foreground'>{word.word}:</span> {word.feedback}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
-            
+
           </CardContent>
         </Card>
       )}

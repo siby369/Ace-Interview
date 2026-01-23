@@ -21,3 +21,14 @@ export function unslugify(slug: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
+
+export function getSecureRandomInt(min: number, max: number): number {
+  if (typeof window !== 'undefined' && window.crypto) {
+    const range = max - min;
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    return min + (array[0] % range);
+  }
+  // Fallback for server-side or environments without crypto (though unlikely in modern browsers)
+  return Math.floor(Math.random() * (max - min)) + min;
+}
