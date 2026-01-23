@@ -23,12 +23,14 @@ export function unslugify(slug: string): string {
 }
 
 export function getSecureRandomInt(min: number, max: number): number {
-  if (typeof window !== 'undefined' && window.crypto) {
+  const crypto = typeof window !== 'undefined' ? window.crypto : globalThis.crypto;
+
+  if (crypto && crypto.getRandomValues) {
     const range = max - min;
     const array = new Uint32Array(1);
-    window.crypto.getRandomValues(array);
+    crypto.getRandomValues(array);
     return min + (array[0] % range);
   }
-  // Fallback for server-side or environments without crypto (though unlikely in modern browsers)
-  return Math.floor(Math.random() * (max - min)) + min;
+
+  throw new Error("Secure random number generator not available.");
 }
