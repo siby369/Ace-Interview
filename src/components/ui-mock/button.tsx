@@ -3,3 +3,6 @@ import { cn } from "@/lib/utils";
 
 export interface ButtonProps extends React.HTMLAttributes<HTMLDivElement> {}
 
+const Button = React.forwardRef<HTMLDivElement, ButtonProps>(({ className, ...props }, ref) => {
+  return <div ref={ref} className={cn("", className)} {...props} />;
+});
