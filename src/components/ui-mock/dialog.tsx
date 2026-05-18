@@ -6,3 +6,7 @@ export interface DialogProps extends React.HTMLAttributes<HTMLDivElement> {}
 const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(({ className, ...props }, ref) => {
   return <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />;
 });
+
+Dialog.displayName = "Dialog";
+
+export { Dialog };
