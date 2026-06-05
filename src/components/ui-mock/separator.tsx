@@ -6,3 +6,7 @@ export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {}
 const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(({ className, ...props }, ref) => {
   return <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />;
 });
+
+Separator.displayName = "Separator";
+
+export { Separator };
