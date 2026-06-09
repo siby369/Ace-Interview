@@ -86,14 +86,15 @@ export function CustomCursor() {
     // Check for interactive elements
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const isInteractive =
+      const isInteractive = Boolean(
         target.tagName === 'A' ||
         target.tagName === 'BUTTON' ||
         target.closest('button') ||
         target.closest('a') ||
         target.closest('[role="button"]') ||
         target.style.cursor === 'pointer' ||
-        window.getComputedStyle(target).cursor === 'pointer';
+        window.getComputedStyle(target).cursor === 'pointer'
+      );
       setIsHovering(isInteractive);
     };
 

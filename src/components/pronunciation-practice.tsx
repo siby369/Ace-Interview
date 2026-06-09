@@ -1,11 +1,12 @@
 'use client';
 
 import { getPronunciationFeedback } from '@/ai/flows/get-pronunciation-feedback';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
 import type { PronunciationFeedback } from '@/lib/types';
 import { getSecureRandomInt } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle, Mic, RefreshCw, Square } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Progress } from './ui/progress';
@@ -25,11 +26,38 @@ export default function PronunciationPractice() {
   const [currentSentence, setCurrentSentence] = useState(practiceSentences[0]);
   const [feedback, setFeedback] = useState<PronunciationFeedback | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playSentenceAudio = async (sentence: string) => {
+    try {
+      setIsGeneratingAudio(true);
+      const { audioDataUri } = await textToSpeech({ text: sentence });
+      if (!audioRef.current) {
+        audioRef.current = new Audio();
+      }
+      audioRef.current.src = audioDataUri;
+      await audioRef.current.play();
+    } catch (error) {
+      console.error('TTS failed, falling back to speech synthesis', error);
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(sentence));
+      }
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  };
+
+  useEffect(() => {
+    void playSentenceAudio(currentSentence);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSentence]);
 
   const startRecording = async () => {
     setFeedback(null);
@@ -121,6 +149,12 @@ export default function PronunciationPractice() {
           <p className="text-2xl font-serif text-center p-8 rounded-md bg-secondary">
             &ldquo;{currentSentence}&rdquo;
           </p>
+          <div className="mt-4 flex justify-center">
+            <Button variant="secondary" size="sm" onClick={() => playSentenceAudio(currentSentence)} disabled={isGeneratingAudio}>
+              {isGeneratingAudio ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Play sentence
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
