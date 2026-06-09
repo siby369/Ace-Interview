@@ -411,9 +411,20 @@ export default function Home() {
                     >
                         <BotMessageSquare className="h-6 w-6 text-primary" />
                     </motion.div>
-                    <span className="sr-only">Ace Interview</span>
+                    <span className="ml-2.5 font-bold font-headline text-lg tracking-tight">Ace Interview</span>
                 </Link>
                 <nav className="ml-auto flex gap-4 sm:gap-6">
+                    <Link
+                        href="/dashboard"
+                        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
+                        prefetch={false}
+                    >
+                        <span className="inline-flex items-center gap-1 transition-transform duration-300 group-hover:-translate-y-0.5">
+                            Dashboard
+                            <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0" />
+                        </span>
+                        <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-gradient-to-r from-primary/0 via-primary to-primary/0 group-hover:w-full transition-all duration-500 animate-gradient" />
+                    </Link>
                     <Link
                         href="/interview/new"
                         className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
@@ -502,7 +513,7 @@ export default function Home() {
                                 <span className="font-bold tracking-[-0.015em]">Enter</span>{' '}
                                 <span className="font-semibold tracking-[-0.01em]">the</span>{' '}
                                 <span className="font-bold tracking-[-0.02em]">Interview</span>{' '}
-                                <span className="font-semibold tracking-[-0.018em]">Chamber</span>
+                                <span className="font-semibold tracking-[-0.018em]">Coach</span>
                             </motion.h1>
                             <motion.p
                                 initial={{ opacity: 0, y: 18, scale: 1.02 }}
@@ -511,7 +522,7 @@ export default function Home() {
                                 className="mx-auto max-w-[760px] text-white/75 md:text-xl text-lg leading-[1.65] tracking-[-0.01em]"
                                 style={{ textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
                             >
-                                Step into an immersive practice space where AI guides your preparation. Real-time feedback. Calm confidence. Real results.
+                                Build interview muscle with adaptive practice, instant feedback, answer rewrites, and a realtime progress dashboard that remembers every session locally.
                             </motion.p>
 
                             <motion.div

@@ -9,6 +9,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { FloatingOrb } from '@/components/floating-orb';
+import { SettingsPanel } from '@/components/settings-panel';
 
 // 3D Tunnel Particles Animation
 const TunnelParticles = () => {
@@ -508,20 +509,23 @@ export default function NewInterviewPage() {
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="flex items-center gap-4 mb-4"
+                                className="flex items-center justify-between gap-4 mb-4"
                             >
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={handleBack}
-                                    className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white transition-all duration-300 hover:scale-105"
-                                >
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                                <div>
-                                    <p className="text-sm uppercase tracking-wider text-white/60 font-semibold mb-1">Current Role</p>
-                                    <p className="text-xl text-white font-bold font-headline">{roleName}</p>
+                                <div className="flex items-center gap-4">
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={handleBack}
+                                        className="border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-white transition-all duration-300 hover:scale-105"
+                                    >
+                                        <ArrowLeft className="h-4 w-4" />
+                                    </Button>
+                                    <div>
+                                        <p className="text-sm uppercase tracking-wider text-white/60 font-semibold mb-1">Current Role</p>
+                                        <p className="text-xl text-white font-bold font-headline">{roleName}</p>
+                                    </div>
                                 </div>
+                                <SettingsPanel />
                             </motion.div>
 
                             <motion.h1

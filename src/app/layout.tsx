@@ -4,7 +4,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/theme-provider';
-import { CustomCursor } from '@/components/custom-cursor';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -40,7 +39,6 @@ export default function RootLayout({
         )}
       >
         <ThemeProvider>
-          <CustomCursor />
           {children}
           <Toaster />
         </ThemeProvider>

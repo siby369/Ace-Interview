@@ -13,8 +13,6 @@
     --card: rgba(255,255,255,0.04);
     --border: rgba(255,255,255,0.08);
     --muted: rgba(255,255,255,0.6);
-    /* Cursor color will be set dynamically by JS based on system theme */
-    --cursor-color: #ffffff;
     --invert: 0;
     
     /* Keep Tailwind compatibility */
@@ -43,7 +41,6 @@
   }
   html {
     color-scheme: dark;
-    cursor: default;
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
@@ -62,106 +59,9 @@
     transition: filter 200ms ease;
   }
 
-  /* Set cursor for text input elements */
-  input[type='text'],
-  input[type='email'],
-  input[type='password'],
-  input[type='search'],
-  input[type='url'],
-  input[type='tel'],
-  input[type='number'],
-  textarea {
-    cursor: text;
-    -webkit-user-select: auto; /* Safari */
-    -ms-user-select: auto; /* IE 10 and IE 11 */
-    user-select: auto; /* Standard syntax */
-  }
 
-  /* Set cursor for clickable elements */
-  button,
-  a,
-  [role='button'] {
-    cursor: pointer;
-  }
-
-  p, h1, h2, h3, h4, h5, h6, span, div {
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10 and IE 11 */
-    user-select: none; /* Standard syntax */
-    cursor: default;
-  }
 }
 
-/* Custom Cursor Styles */
-/* Cursor color is set dynamically by JS based on system theme */
-.custom-cursor {
-  position: fixed;
-  width: 10px;
-  height: 10px;
-  background: var(--cursor-color);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  mix-blend-mode: difference;
-  transition: transform 0.1s ease-out, width 0.2s ease-out, height 0.2s ease-out, background 200ms ease;
-}
-
-/* Light system: keep mix-blend-mode for white cursor visibility */
-.custom-cursor.cursor-light-system {
-  mix-blend-mode: difference;
-  opacity: 1;
-  background: #ffffff !important;
-}
-
-.custom-cursor.cursor-hover {
-  width: 6px;
-  height: 6px;
-  transform: translate(-50%, -50%) scale(1.2);
-}
-
-.custom-cursor-ring {
-  position: fixed;
-  width: 30px;
-  height: 30px;
-  border: 2px solid var(--cursor-color);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  mix-blend-mode: difference;
-  transition: width 0.2s ease-out, height 0.2s ease-out, border-width 0.2s ease-out, border-color 200ms ease;
-}
-
-/* Light system: keep mix-blend-mode for white cursor ring visibility */
-.custom-cursor-ring.cursor-light-system {
-  mix-blend-mode: difference;
-  opacity: 1;
-  border-color: #ffffff !important;
-}
-
-.custom-cursor-ring.ring-hover {
-  width: 50px;
-  height: 50px;
-  border-width: 1px;
-}
-
-/* Hide default cursor on desktop only */
-@media (hover: hover) and (pointer: fine) {
-  * {
-    cursor: none !important;
-  }
-
-  /* Show default cursor for text inputs */
-  input[type='text'],
-  input[type='email'],
-  input[type='password'],
-  input[type='search'],
-  input[type='url'],
-  input[type='tel'],
-  input[type='number'],
-  textarea {
-    cursor: text !important;
-  }
-}
 
 /* Circular Tunnel Animation Styles */
 #tunnel-overlay {
