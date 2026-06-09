@@ -72,14 +72,16 @@ Return the response as a JSON object with this structure:
   try {
     const completion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
-      response_format: { type: 'json_object' },
+      model: process.env.TEXT_MODEL || 'openrouter/free',
     });
 
-    const content = completion.choices[0]?.message?.content;
+    let content = completion.choices[0]?.message?.content;
     if (!content) {
       throw new Error('No content received from Groq');
     }
+
+    // Strip potential markdown formatting (```json ... ```)
+    content = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
 
     const json = JSON.parse(content);
     return GenerateInterviewQuestionsOutputSchema.parse(json);

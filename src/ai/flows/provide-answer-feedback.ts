@@ -9,7 +9,7 @@
  * - ProvideAnswerFeedbackOutput - The return type for the provideAnswerFeedback function.
  */
 
-import { groq } from '@/ai/groq';
+import { fastGroq } from '@/ai/groq';
 import { z } from 'zod';
 // import { getPronunciationFeedback } from './get-pronunciation-feedback';
 
@@ -59,11 +59,11 @@ export async function provideAnswerFeedback(input: ProvideAnswerFeedbackInput): 
   const { jobRole, interviewQuestion, userAnswerText } = input;
 
   const prompt = `You are an AI interview coach providing feedback to a candidate.
-  Your task is to analyze the user's answer based on its content, structure, and clarity. Do NOT analyze pronunciation, as that is handled separately.
+  Your task is to analyze the user's answer based on its content, structure, clarity, and inferred fluency/pronunciation.
 
   Job Role: ${jobRole}
   Interview Question: ${interviewQuestion}
-  User's Answer (transcribed if spoken): ${userAnswerText}
+  User's Answer (transcribed from their speech): ${userAnswerText}
 
   Provide constructive feedback on the user's answer. Include the following:
   - A general feedback summary.
@@ -71,39 +71,54 @@ export async function provideAnswerFeedback(input: ProvideAnswerFeedbackInput): 
   - An overall score (0-100) for the content quality.
   - An analysis of the answer structure (e.g. STAR method, relevance, depth).
   - An analysis of the language used (clarity, tone, filler words).
+  - A "pronunciationAnalysis" object that infers pronunciation and fluency issues based on the raw transcription. If there are words that seem like mispronunciations (e.g., a wrong word that sounds similar to the correct word, or heavy use of filler words), flag them.
 
-  Return the response as a JSON object with this structure:
+  Return the response as a JSON object EXACTLY matching this structure:
   {
     "feedback": "string",
     "strengths": "string",
     "weaknesses": "string",
     "overallScore": number,
     "answerStructure": "string",
-    "languageAnalysis": "string"
+    "languageAnalysis": "string",
+    "pronunciationAnalysis": {
+      "overallScore": number (0-100 score for fluency/delivery),
+      "transcript": "string (repeat the user's answer text)",
+      "wordLevelFeedback": [
+        {
+          "word": "string (the target word)",
+          "isCorrect": boolean,
+          "feedback": "string (what they likely said or why it was flagged)"
+        }
+      ],
+      "generalFeedback": "string (tips on delivery, pacing, and inferred pronunciation)"
+    }
   }`;
 
   try {
-    const completion = await groq.chat.completions.create({
+    const completion = await fastGroq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
+      model: 'llama-3.1-8b-instant',
       response_format: { type: 'json_object' },
     });
 
-    const content = completion.choices[0]?.message?.content;
+    let content = completion.choices[0]?.message?.content;
     if (!content) {
       throw new Error('No content received from Groq');
     }
 
-    const json = JSON.parse(content);
-    // Parse partial content to ensure it matches schema (omitting pronunciation)
-    const partialSchema = ProvideAnswerFeedbackOutputSchema.omit({ pronunciationAnalysis: true });
-    const validatedContent = partialSchema.parse(json);
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      content = jsonMatch[0];
+    } else {
+      content = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    }
 
-    // Note: Pronunciation feedback is currently disabled during migration to Groq
-    return {
-      ...validatedContent,
-      pronunciationAnalysis: undefined,
-    };
+    const json = JSON.parse(content);
+    // Parse the full content including the newly restored pronunciation analysis!
+    const validatedContent = ProvideAnswerFeedbackOutputSchema.parse(json);
+
+    return validatedContent;
 
   } catch (error) {
     console.error('Error generating answer feedback with Groq:', error);

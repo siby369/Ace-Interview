@@ -1,95 +1,89 @@
 'use server';
 
-/**
- * @fileOverview A flow to analyze user's pronunciation from an audio recording against expected text.
- *
- * - getPronunciationFeedback - A function that provides a detailed analysis of pronunciation.
- * - GetPronunciationFeedbackInput - The input type for the getPronunciationFeedback function.
- * - GetPronunciationFeedbackOutput - The return type for the getPronunciationFeedback function.
- */
-
-'use server';
-
-/**
- * @fileOverview A flow to analyze user's pronunciation from an audio recording against expected text.
- *
- * - getPronunciationFeedback - A function that provides a detailed analysis of pronunciation.
- * - GetPronunciationFeedbackInput - The input type for the getPronunciationFeedback function.
- * - GetPronunciationFeedbackOutput - The return type for the getPronunciationFeedback function.
- */
-
-// import {ai} from '@/ai/genkit';
+import { transcribeAudio } from './transcribe-audio';
+import { groq } from '@/ai/groq';
 import { z } from 'zod';
 
 const GetPronunciationFeedbackInputSchema = z.object({
-  audioDataUri: z
-    .string()
-    .describe(
-      "A chunk of audio, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
-    ),
-  expectedText: z
-    .string()
-    .describe('The text the user was supposed to read.'),
+  audioDataUri: z.string().describe("A chunk of audio, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"),
+  expectedText: z.string().describe('The text the user was supposed to read.'),
 });
-export type GetPronunciationFeedbackInput = z.infer<
-  typeof GetPronunciationFeedbackInputSchema
->;
+
+export type GetPronunciationFeedbackInput = z.infer<typeof GetPronunciationFeedbackInputSchema>;
 
 const WordFeedbackSchema = z.object({
-  word: z.string().describe('The word from the expected text.'),
-  isCorrect: z.boolean().describe('Whether the word was pronounced correctly.'),
-  feedback: z.string().optional().describe('Specific feedback for this word if mispronounced.'),
+  word: z.string(),
+  isCorrect: z.boolean(),
+  feedback: z.string().optional(),
 });
 
 const GetPronunciationFeedbackOutputSchema = z.object({
-  overallScore: z.number().describe('An overall pronunciation score from 0 to 100.'),
-  transcript: z.string().describe('The transcribed text from the user\'s audio.'),
-  wordLevelFeedback: z.array(WordFeedbackSchema).describe('An array of feedback for each word in the expected text.'),
-  generalFeedback: z.string().describe('General tips and suggestions for improving pronunciation based on the user\'s performance.'),
+  overallScore: z.number(),
+  transcript: z.string(),
+  wordLevelFeedback: z.array(WordFeedbackSchema),
+  generalFeedback: z.string(),
 });
-export type GetPronunciationFeedbackOutput = z.infer<
-  typeof GetPronunciationFeedbackOutputSchema
->;
+
+export type GetPronunciationFeedbackOutput = z.infer<typeof GetPronunciationFeedbackOutputSchema>;
+
+function scoreTranscript(expectedText: string, transcript: string) {
+  const expectedWords = expectedText.replace(/[^\w\s']/g, '').split(/\s+/).filter(Boolean);
+  const transcriptWords = transcript.replace(/[^\w\s']/g, '').split(/\s+/).filter(Boolean);
+  const transcriptSet = new Set(transcriptWords.map((w) => w.toLowerCase()));
+  const matched = expectedWords.filter((word) => transcriptSet.has(word.toLowerCase())).length;
+  return Math.max(20, Math.min(100, Math.round((matched / Math.max(expectedWords.length, 1)) * 100)));
+}
 
 export async function getPronunciationFeedback(
   input: GetPronunciationFeedbackInput
 ): Promise<GetPronunciationFeedbackOutput> {
-  // return getPronunciationFeedbackFlow(input);
-  console.warn("Pronunciation feedback is currently disabled due to provider migration.");
-  throw new Error("Pronunciation feedback is currently disabled.");
+  const { audioDataUri, expectedText } = GetPronunciationFeedbackInputSchema.parse(input);
+
+  const transcriptResult = await transcribeAudio({ audioDataUri, languageCode: 'en-US' });
+  const transcript = transcriptResult.text || '';
+
+  const prompt = `You are an expert pronunciation and speaking coach.
+
+Expected text:
+${expectedText}
+
+User transcript:
+${transcript}
+
+Analyze the user's spoken delivery. Focus on likely pronunciation, pacing, omitted words, extra words, and confidence based on the transcript mismatch and phrasing.
+
+Return JSON exactly in this shape:
+{
+  "overallScore": number,
+  "transcript": "string",
+  "wordLevelFeedback": [
+    {
+      "word": "string",
+      "isCorrect": boolean,
+      "feedback": "string"
+    }
+  ],
+  "generalFeedback": "string"
 }
 
-// const getPronunciationFeedbackPrompt = ai.definePrompt({
-//   name: 'getPronunciationFeedbackPrompt',
-//   input: {schema: GetPronunciationFeedbackInputSchema},
-//   output: {schema: GetPronunciationFeedbackOutputSchema},
-//   prompt: `You are an expert English pronunciation coach. Your task is to analyze a user's audio recording and compare their pronunciation to the provided text.
-//
-//   Expected Text: "{{{expectedText}}}"
-//   User's Audio: {{media url=audioDataUri}}
-//
-//   First, transcribe the user's audio.
-//   Then, compare the transcription and the phonetic pronunciation from the audio to the expected text, word by word.
-//
-//   Provide the following analysis:
-//   1.  **Overall Score**: An overall score from 0-100 representing the accuracy of the pronunciation compared to a native speaker. A perfect match is 100. Deduct points for mispronounced words, missing words, or extra words.
-//   2.  **Transcript**: The text you transcribed from the audio.
-//   3.  **Word-level Feedback**: For each word in the *original expected text*, provide a feedback object. Indicate if the word was pronounced correctly. If it was mispronounced, provide a short, specific tip (e.g., "The 'a' sound was closer to 'cat' than 'car'"). If the user skipped the word, mark it as incorrect.
-//   4.  **General Feedback**: Provide a summary of the user's performance with 1-2 actionable tips for overall improvement. Focus on the most important issues.
-//
-//   Analyze the pronunciation carefully based on the audio provided. Do not base your analysis solely on the text transcription.
-//   `,
-// });
-//
-// const getPronunciationFeedbackFlow = ai.defineFlow(
-//   {
-//     name: 'getPronunciationFeedbackFlow',
-//     inputSchema: GetPronunciationFeedbackInputSchema,
-//     outputSchema: GetPronunciationFeedbackOutputSchema,
-//   },
-//   async input => {
-//     const {output} = await getPronunciationFeedbackPrompt(input);
-//     return output!;
-//   }
-// );
+Use short, concrete feedback. If a word appears in the expected text but not the transcript, mark it incorrect.`;
 
+  const completion = await groq.chat.completions.create({
+    messages: [{ role: 'user', content: prompt }],
+    model: process.env.TEXT_MODEL || 'openrouter/free',
+    response_format: { type: 'json_object' },
+  });
+
+  let content = completion.choices[0]?.message?.content;
+  if (!content) {
+    throw new Error('No content received from Groq');
+  }
+
+  content = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  const parsed = GetPronunciationFeedbackOutputSchema.parse(JSON.parse(content));
+  return {
+    ...parsed,
+    transcript: parsed.transcript || transcript,
+    overallScore: Number.isFinite(parsed.overallScore) ? parsed.overallScore : scoreTranscript(expectedText, transcript),
+  };
+}
