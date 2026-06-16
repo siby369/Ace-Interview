@@ -7,6 +7,7 @@ import { generateAnswerRewrite } from '@/ai/flows/generate-answer-rewrite';
 import { generateSessionReview } from '@/ai/flows/generate-session-review';
 import { coachSpeechDelivery, type CoachSpeechDeliveryOutput } from '@/ai/flows/coach-speech-delivery';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
+import { generatePanelQuestion } from '@/ai/flows/generate-panel-question';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight, Languages, LoaderCircle, Mic, MicOff, Sparkles, Square, Volume2, Bookmark, RotateCcw, FileText, Maximize, ShieldAlert, AlertTriangle, Play, BrainCircuit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -43,6 +44,7 @@ interface InterviewClientViewProps {
     questionAngle: string;
     seniority: string;
   };
+  panel?: Array<{ id: string; name: string; role: string; focus: string }>;
 }
 
 const supportedLanguages = [
@@ -54,7 +56,7 @@ const supportedLanguages = [
   { name: 'Chinese (Mandarin, Simplified)', code: 'cmn-CN' },
 ];
 
-export function InterviewClientView({ initialInterviewData, role, company, persona = 'friendly', topics, targetQuestionCount, jdContext }: InterviewClientViewProps) {
+export function InterviewClientView({ initialInterviewData, role, company, persona = 'friendly', topics, targetQuestionCount, jdContext, panel }: InterviewClientViewProps) {
   const router = useRouter();
   const { toast } = useToast();
   const settings = loadPracticeSettings();
@@ -119,12 +121,23 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
           acc[topic] = topics[topic];
           return acc;
         }, {});
-        const firstQuestion = await generateSingleInterviewQuestion({
-          role: `${role}${company ? ` for ${company}` : ''} (${persona})`,
-          topics: adaptiveTopics,
-          previousQuestions: [],
-          jdContext,
-        });
+        
+        let firstQuestion;
+        if (panel && panel.length > 0) {
+          firstQuestion = await generatePanelQuestion({
+            persona: panel[0],
+            jobRole: role,
+            previousQuestions: [],
+            jdContext,
+          });
+        } else {
+          firstQuestion = await generateSingleInterviewQuestion({
+            role: `${role}${company ? ` for ${company}` : ''} (${persona})`,
+            topics: adaptiveTopics,
+            previousQuestions: [],
+            jdContext,
+          });
+        }
         if (cancelled) return;
         setAllQuestions([firstQuestion]);
         loadingTargetRef.current = 1;
@@ -157,12 +170,26 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
         acc[topic] = topics[topic];
         return acc;
       }, {});
-      generateSingleInterviewQuestion({
-        role,
-        topics: adaptiveTopics,
-        previousQuestions: allQuestions.map(q => q.question),
-        jdContext,
-      }).then(newQ => {
+
+      let questionPromise;
+      if (panel && panel.length > 0) {
+        const nextPersona = panel[allQuestions.length % panel.length];
+        questionPromise = generatePanelQuestion({
+          persona: nextPersona,
+          jobRole: role,
+          previousQuestions: allQuestions.map(q => q.question),
+          jdContext,
+        });
+      } else {
+        questionPromise = generateSingleInterviewQuestion({
+          role,
+          topics: adaptiveTopics,
+          previousQuestions: allQuestions.map(q => q.question),
+          jdContext,
+        });
+      }
+
+      questionPromise.then(newQ => {
         setAllQuestions(prev => [...prev, newQ]);
         setIsGeneratingNext(false);
       }).catch(err => {
@@ -493,53 +520,58 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
               </AlertDescription>
             </Alert>
           )}
-          <div className="space-y-2 mb-8">
-          <p className="text-sm font-medium text-primary">
-            Role: {role}
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-bold font-headline">
-            Question {currentQuestionIndex + 1} of {targetQuestionCount}
-          </h2>
-          <Progress value={((currentQuestionIndex + 1) / targetQuestionCount) * 100} className="w-full" />
-           {currentQuestion ? (
-            <div className="flex items-center gap-4 pt-4 !mt-6">
-              <p className="text-lg sm:text-xl text-foreground flex-1">
-                {currentQuestionText}
-              </p>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={playQuestionAudio}
-                title="Play Audio"
-              >
-                <Volume2 className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                title="Bookmark question"
-                onClick={() => {
-                  const sessions = loadInterviewSessions();
-                  const current = sessions.find((item) => item.id === sessionId);
-                  if (current && !current.bookmarkedQuestions.includes(currentQuestionText)) {
-                    current.bookmarkedQuestions = [...current.bookmarkedQuestions, currentQuestionText];
-                    upsertInterviewSession({ ...current, updatedAt: new Date().toISOString() });
-                    toast({ title: 'Saved', description: 'Question bookmarked for later review.' });
-                  }
-                }}
-              >
-                <Bookmark className="h-5 w-5" />
-              </Button>
+          {/* Cinematic Question Header */}
+          <div className="flex flex-col items-center text-center space-y-8 mb-4 animate-in slide-in-from-bottom-4 duration-1000 mt-12">
+            <div className="flex flex-col items-center gap-3">
+              <div className="px-4 py-1.5 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-md">
+                <p className="text-xs font-medium tracking-widest text-[#E1E0CC]/50 uppercase">
+                  {role} • Q{currentQuestionIndex + 1}/{targetQuestionCount}
+                </p>
+              </div>
+              {panel && panel.length > 0 && (
+                <p className="text-sm font-medium text-[#E1E0CC]/30">
+                  Interviewer: <span className="text-[#E1E0CC]/80">{panel[currentQuestionIndex % panel.length].name}</span>
+                </p>
+              )}
             </div>
-           ) : (
-            <div className="flex items-center gap-4 pt-4 !mt-6 text-muted-foreground animate-pulse">
-              <LoaderCircle className="h-5 w-5 animate-spin" />
-              <p className="text-lg sm:text-xl flex-1">
-                {isPreparingFirstQuestion ? 'Preparing your first question...' : 'Generating your next question...'}
-              </p>
+            
+            <div className="w-full max-w-sm mx-auto">
+              <Progress value={((currentQuestionIndex + 1) / targetQuestionCount) * 100} className="h-0.5 bg-white/5 [&>div]:bg-[#E1E0CC]" />
             </div>
-           )}
-        </div>
+
+            <div className="min-h-[160px] flex flex-col items-center justify-center w-full mt-4">
+              {currentQuestion ? (
+                <div className="relative group w-full flex justify-center">
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight text-[#E1E0CC] leading-tight px-8 max-w-5xl drop-shadow-md">
+                    {currentQuestionText}
+                  </h1>
+                  <div className="absolute -right-4 md:-right-16 top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" onClick={playQuestionAudio} className="rounded-full bg-white/5 hover:bg-white/10 text-[#E1E0CC]">
+                      <Volume2 className="h-5 w-5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="rounded-full bg-white/5 hover:bg-white/10 text-[#E1E0CC]" onClick={() => {
+                        const sessions = loadInterviewSessions();
+                        const current = sessions.find((item) => item.id === sessionId);
+                        if (current && !current.bookmarkedQuestions.includes(currentQuestionText)) {
+                          current.bookmarkedQuestions = [...current.bookmarkedQuestions, currentQuestionText];
+                          upsertInterviewSession({ ...current, updatedAt: new Date().toISOString() });
+                          toast({ title: 'Saved', description: 'Question bookmarked for later review.' });
+                        }
+                      }}>
+                      <Bookmark className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-6 text-[#E1E0CC]/30 animate-pulse">
+                  <div className="w-4 h-4 rounded-full bg-[#E1E0CC]/50 animate-ping" />
+                  <p className="text-xl font-light tracking-wide">
+                    {isPreparingFirstQuestion ? 'Preparing your session...' : 'Thinking...'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
 
         <div className="flex-1 flex flex-col">
           {initialQuestionError && (
@@ -560,25 +592,20 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
               </Alert>
             )}
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(getFeedbackAction)} className="space-y-6 flex flex-col flex-1">
+              <form onSubmit={form.handleSubmit(getFeedbackAction)} className="space-y-6 flex flex-col flex-1 h-full justify-center">
                 <FormField
                   control={form.control}
                   name="answer"
                   render={({ field }) => (
-                    <FormItem className="flex-1 flex flex-col">
-                      <FormLabel>
-                        {currentQuestion.requiresTyping
-                          ? 'Your Answer & Code'
-                          : 'Your Answer'}
-                      </FormLabel>
+                    <FormItem className="flex-1 flex flex-col items-center justify-center w-full max-w-5xl mx-auto mb-24">
                       <FormControl>
                         <Textarea
                           placeholder={
                             currentQuestion.requiresTyping
-                              ? 'Explain your approach and then write your code here...'
-                              : 'Speak or type your answer here...'
+                              ? 'Write your code here...'
+                              : 'Speak your answer... or type it here.'
                           }
-                          className="flex-1 resize-none text-base p-4"
+                          className="flex-1 min-h-[40vh] w-full resize-none text-3xl md:text-5xl font-light text-center p-6 bg-transparent border-none focus-visible:ring-0 text-[#E1E0CC] placeholder:text-[#E1E0CC]/10 leading-snug drop-shadow-sm transition-all focus:text-[#E1E0CC]/90"
                           {...field}
                         />
                       </FormControl>
@@ -587,63 +614,75 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
                   )}
                 />
 
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex items-center gap-2">
+                {/* Dynamic Island Toolbar */}
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] z-50 transition-all duration-500">
+                    <div className="flex items-center gap-2 pl-2">
                        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                        <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectTrigger className="w-[140px] rounded-full bg-transparent border-none focus:ring-0 text-[#E1E0CC]/80 hover:text-[#E1E0CC]">
                           <Languages className="mr-2 h-4 w-4" />
-                          <SelectValue placeholder="Select language" />
+                          <SelectValue placeholder="Language" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-black border-white/10 text-[#E1E0CC]">
                           {supportedLanguages.map(lang => (
-                            <SelectItem key={lang.code} value={lang.code}>
+                             <SelectItem key={lang.code} value={lang.code}>
                               {lang.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      
                       <Button
                         type="button"
-                        variant={isRecording ? 'destructive' : 'outline'}
-                        size="lg"
+                        variant={isRecording ? 'destructive' : 'secondary'}
+                        size="icon"
                         onClick={handleMicButtonClick}
                         disabled={hasMicPermission === null || isLoading}
-                        className="flex-1 sm:flex-none"
+                        className={`rounded-full w-12 h-12 flex-shrink-0 relative overflow-hidden transition-all duration-300 ${isRecording ? 'bg-red-500 hover:bg-red-600 scale-110 shadow-[0_0_30px_rgba(239,68,68,0.5)]' : 'bg-white/5 hover:bg-white/10 text-[#E1E0CC]'}`}
                       >
-                        {isRecording ? (
-                          <Square className="mr-2 h-4 w-4" />
-                        ) : (
-                          <Mic className="mr-2 h-4 w-4" />
+                        {isRecording && (
+                          <div className="absolute inset-0 bg-red-400 opacity-50 animate-ping rounded-full" />
                         )}
-                        {isRecording ? 'Stop' : 'Record'}
+                        {isRecording ? (
+                          <Square className="h-5 w-5 relative z-10 text-white" />
+                        ) : (
+                          <Mic className="h-5 w-5 relative z-10" />
+                        )}
                       </Button>
-                      {/* Filler word badge */}
+                      
                       {fillerWordCount > 0 && (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 text-xs font-medium">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-semibold">
                           <span>⚡</span>
-                          <span>{fillerWordCount} filler{fillerWordCount !== 1 ? 's' : ''}</span>
+                          <span>{fillerWordCount}</span>
                         </div>
                       )}
-                      {/* Playback own recording */}
+                      
                       {questionAudioMap[currentQuestionIndex] && (
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="ghost"
                           size="icon"
+                          className="rounded-full w-12 h-12 text-[#E1E0CC]/70 hover:text-[#E1E0CC]"
                           title="Play back your recording"
                           onClick={() => {
                             const a = new Audio(questionAudioMap[currentQuestionIndex]);
                             a.play();
                           }}
                         >
-                          <Play className="h-4 w-4" />
+                          <Play className="h-5 w-5" />
                         </Button>
                       )}
                     </div>
-                  <Button type="submit" size="lg" disabled={isLoading || isTranscribing} className="flex-1">
-                    {isTranscribing ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4" />}
-                    {isTranscribing ? 'Transcribing...' : 'Submit for Feedback'}
-                  </Button>
+                    
+                    <div className="w-px h-8 bg-white/10 mx-1" />
+                    
+                    <Button 
+                      type="submit" 
+                      disabled={isLoading || isTranscribing} 
+                      className="rounded-full px-8 bg-[#E1E0CC] text-black hover:bg-[#E1E0CC]/90 hover:scale-105 active:scale-95 transition-all font-medium text-base h-12 mr-1"
+                    >
+                      {isTranscribing ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4" />}
+                      {isTranscribing ? 'Transcribing...' : 'Submit'}
+                    </Button>
                 </div>
               </form>
             </Form>

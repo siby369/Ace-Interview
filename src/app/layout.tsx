@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Poppins } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -18,9 +18,24 @@ const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
 });
 
+import { AppShell } from '@/components/app-shell';
+
 export const metadata: Metadata = {
   title: 'Ace Interview',
   description: 'AI-powered mock interviews to help you land your dream job.',
+  appleWebApp: {
+    capable: true,
+    title: 'Ace Interview',
+    statusBarStyle: 'black-translucent',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -39,7 +54,9 @@ export default function RootLayout({
         )}
       >
         <ThemeProvider>
-          {children}
+          <AppShell>
+            {children}
+          </AppShell>
           <Toaster />
         </ThemeProvider>
         {/* Circular Tunnel Overlay */}

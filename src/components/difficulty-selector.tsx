@@ -19,12 +19,13 @@ export function DifficultySelector({ value, onChange, disabled }: DifficultySele
                 return (
                     <button
                         key={level}
+                        type="button"
                         onClick={(e) => {
                             e.stopPropagation();
                             onChange(level);
                         }}
                         disabled={disabled}
-                        className="relative px-3 py-1 text-xs font-medium text-white/70 transition-colors hover:text-white focus:outline-none"
+                        className="relative px-3 py-1 text-xs font-medium text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-black"
                     >
                         {isActive && (
                             <motion.div

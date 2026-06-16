@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { loadInterviewSessions } from '@/lib/storage';
 import type { InterviewSessionRecord } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Bookmark, CalendarDays, ChartNoAxesCombined, Flame, Route, Share2, Trophy, Grid3X3 } from 'lucide-react';
-import { SettingsPanel } from '@/components/settings-panel';
+import { Bookmark, CalendarDays, ChartNoAxesCombined, Flame, Route, Share2, Trophy, Grid3X3, MoreHorizontal } from 'lucide-react';
 import { SkillHeatmap } from '@/components/skill-heatmap';
+import { motion } from 'framer-motion';
+import { SettingsPanel } from '@/components/settings-panel';
 
 export default function DashboardPage() {
   const [sessions, setSessions] = useState<InterviewSessionRecord[]>([]);
@@ -27,12 +24,7 @@ export default function DashboardPage() {
   const allAnswers = completed.flatMap((s) => s.answers);
   const avgScore = allAnswers.length ? Math.round(allAnswers.reduce((acc, item) => acc + item.score, 0) / allAnswers.length) : 0;
   const weakTopics = sessions.flatMap((session) => session.recommendedPractice || []).slice(0, 6);
-  const allBookmarks = useMemo(
-    () => sessions.flatMap((session) => session.bookmarkedQuestions.map((question) => ({ question, session })) ),
-    [sessions]
-  );
 
-  // Compute per-topic scores for heatmap
   const topicScores = useMemo(() => {
     const map: Record<string, { total: number; count: number }> = {};
     completed.forEach((session) => {
@@ -73,109 +65,158 @@ export default function DashboardPage() {
     await navigator.clipboard.writeText(text);
   };
 
+  const CinematicCard = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+      className={`relative overflow-hidden rounded-3xl border border-white/5 bg-white/[0.02] backdrop-blur-sm ${className}`}
+    >
+      <div className="relative z-10 h-full">{children}</div>
+    </motion.div>
+  );
+
   return (
-    <main className="min-h-screen p-4 sm:p-6 md:p-8 bg-black text-white">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between gap-4">
+    <div className="relative min-h-screen text-[#E1E0CC]">
+      <div className="relative z-10 p-6 sm:p-8 lg:p-10 w-full max-w-7xl mx-auto">
+        
+        {/* Cinematic Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 mt-8"
+        >
           <div>
-            <p className="text-sm text-white/60">Realtime local dashboard</p>
-            <h1 className="text-3xl font-bold font-headline">Your interview progress</h1>
+            <h1 className="text-5xl md:text-7xl font-medium tracking-tight text-[#E1E0CC] drop-shadow-sm" style={{ letterSpacing: "-0.05em" }}>
+              Welcome back*
+            </h1>
+            <p className="text-sm tracking-wide text-[#E1E0CC]/50 mt-4 max-w-md">
+              Here is an overview of your recent practice sessions and skill development.
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <SettingsPanel />
-            <Button asChild variant="outline" className="border-white/10 bg-white/5 text-white">
-              <Link href="/"><ArrowLeft className="h-4 w-4 mr-2" />Home</Link>
-            </Button>
           </div>
+        </motion.div>
+
+        {/* Immersive Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: 'Total Sessions', value: totalSessions },
+            { label: 'Completed', value: completed.length },
+            { label: 'Average Score', value: avgScore },
+            { label: 'Bookmarks', value: sessions.reduce((acc, s) => acc + s.bookmarkedQuestions.length, 0) }
+          ].map((stat, i) => (
+            <CinematicCard key={stat.label} delay={0.1 + (i * 0.1)} className="p-8 flex flex-col justify-between hover:bg-white/[0.04] transition-colors">
+              <span className="text-sm font-medium text-[#E1E0CC]/40">{stat.label}</span>
+              <span className="text-5xl md:text-6xl font-medium mt-4 tracking-tighter">{stat.value}</span>
+            </CinematicCard>
+          ))}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card><CardContent className="p-5"><div className="text-white/60 text-sm">Sessions</div><div className="text-3xl font-bold">{totalSessions}</div></CardContent></Card>
-          <Card><CardContent className="p-5"><div className="text-white/60 text-sm">Completed</div><div className="text-3xl font-bold">{completed.length}</div></CardContent></Card>
-          <Card><CardContent className="p-5"><div className="text-white/60 text-sm">Avg score</div><div className="text-3xl font-bold">{avgScore}</div></CardContent></Card>
-          <Card><CardContent className="p-5"><div className="text-white/60 text-sm">Bookmarks</div><div className="text-3xl font-bold">{sessions.reduce((acc, s) => acc + s.bookmarkedQuestions.length, 0)}</div></CardContent></Card>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
-            <CardHeader><CardTitle className="flex items-center gap-2"><ChartNoAxesCombined className="h-5 w-5" />Session history</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              {sessions.length === 0 ? <p className="text-white/60">No sessions yet. Start one to see it here in real time.</p> : sessions.map((session) => (
-                <div key={session.id} className="rounded-lg border border-white/10 p-4 space-y-2 bg-white/5">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <div className="font-semibold">{session.role}{session.company ? ` • ${session.company}` : ''}</div>
-                      <div className="text-xs text-white/50 flex items-center gap-2"><CalendarDays className="h-3 w-3" />{new Date(session.updatedAt).toLocaleString()}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{session.persona}</Badge>
-                      {session.completed && <Badge className="bg-green-600">Completed</Badge>}
-                    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-12">
+          {/* Main Feed: Session History */}
+          <div className="lg:col-span-2 space-y-6">
+            <CinematicCard delay={0.4} className="p-0">
+              <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                <h2 className="text-2xl font-medium flex items-center gap-3 text-[#E1E0CC]">
+                  <ChartNoAxesCombined className="w-6 h-6 opacity-60" />
+                  Session History
+                </h2>
+              </div>
+              <div className="p-8 space-y-4">
+                {sessions.length === 0 ? (
+                  <div className="text-center py-16 text-[#E1E0CC]/30">
+                    <p>No sessions yet. Time to start practicing.</p>
                   </div>
-                  <Separator className="bg-white/10" />
-                  <div className="text-sm text-white/70 flex flex-wrap gap-2">
-                    {Object.entries(session.topics).slice(0, 5).map(([topic, level]) => <Badge key={topic} variant="outline" className="border-white/10">{topic} · {level}</Badge>)}
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-white/60">
-                    <span><Trophy className="inline h-4 w-4 mr-1" />{session.answers.length} answers</span>
-                    <span><Bookmark className="inline h-4 w-4 mr-1" />{session.bookmarkedQuestions.length} bookmarks</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="border-white/10 bg-white/5 text-white" onClick={() => exportSession(session)}>
-                      Export
-                    </Button>
-                    <Button variant="outline" size="sm" className="border-white/10 bg-white/5 text-white" onClick={() => shareSession(session)}>
-                      <Share2 className="h-4 w-4 mr-2" />
-                      Share
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <div className="space-y-6">
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><Grid3X3 className="h-5 w-5" />Skill heatmap</CardTitle></CardHeader>
-              <CardContent>
-                <SkillHeatmap topicScores={topicScores} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><Flame className="h-5 w-5" />Next practice</CardTitle></CardHeader>
-              <CardContent className="space-y-2 text-sm text-white/70">
-                {weakTopics.length === 0 ? <p>Once feedback is generated, your suggested next steps will appear here.</p> : weakTopics.map((item) => <div key={item} className="rounded-lg bg-white/5 p-3">{item}</div>)}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><Bookmark className="h-5 w-5" />Saved bookmarks</CardTitle></CardHeader>
-              <CardContent className="space-y-2 text-sm text-white/70">
-                {allBookmarks.length === 0 ? (
-                  <p>No bookmarks yet. Save questions during a session and they will appear here.</p>
                 ) : (
-                  allBookmarks.slice(0, 10).map(({ question, session }, idx) => (
-                    <div key={`${session.id}-${idx}`} className="rounded-lg bg-white/5 p-3">
-                      <div className="text-white">{question}</div>
-                      <div className="text-white/40 text-xs mt-1">{session.role}{session.company ? ` • ${session.company}` : ''}</div>
+                  sessions.map((session) => (
+                    <div key={session.id} className="group rounded-3xl bg-black/20 hover:bg-black/40 border border-white/5 p-6 transition-all duration-500">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                          <h3 className="text-xl font-medium text-[#E1E0CC] transition-colors">
+                            {session.role}{session.company ? ` at ${session.company}` : ''}
+                          </h3>
+                          <p className="text-sm text-[#E1E0CC]/40 flex items-center gap-2 mt-2">
+                            <CalendarDays className="w-4 h-4" />
+                            {new Date(session.updatedAt).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1 rounded-full bg-white/5 text-xs text-[#E1E0CC]/60">{session.persona}</span>
+                          {session.completed && <span className="px-3 py-1 rounded-full bg-[#E1E0CC]/10 text-xs text-[#E1E0CC]">Completed</span>}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {Object.entries(session.topics).slice(0, 4).map(([topic, level]) => (
+                          <span key={topic} className="px-3 py-1 text-xs rounded-full bg-white/5 text-[#E1E0CC]/50 border border-white/5">
+                            {topic} · {level}
+                          </span>
+                        ))}
+                        {Object.keys(session.topics).length > 4 && (
+                          <span className="px-3 py-1 text-xs rounded-full bg-white/5 text-[#E1E0CC]/40">
+                            +{Object.keys(session.topics).length - 4} more
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5">
+                        <div className="flex items-center gap-6 text-sm text-[#E1E0CC]/40">
+                          <span className="flex items-center gap-2"><Trophy className="w-4 h-4" /> {session.answers.length} Qs</span>
+                          <span className="flex items-center gap-2"><Bookmark className="w-4 h-4" /> {session.bookmarkedQuestions.length} Saved</span>
+                        </div>
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => shareSession(session)} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-white/10 hover:text-[#E1E0CC] text-[#E1E0CC]/40 transition-colors">
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => exportSession(session)} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-white/10 hover:text-[#E1E0CC] text-[#E1E0CC]/40 transition-colors">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </CinematicCard>
+          </div>
 
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><Route className="h-5 w-5" />Weekly plan</CardTitle></CardHeader>
-              <CardContent className="space-y-3 text-sm text-white/70">
-                <div className="rounded-lg bg-white/5 p-3">20 min/day for 5 days</div>
-                <div className="rounded-lg bg-white/5 p-3">2 answer rewrites per day</div>
-                <div className="rounded-lg bg-white/5 p-3">1 pronunciation drill session</div>
-              </CardContent>
-            </Card>
+          {/* Sidebar Widgets */}
+          <div className="space-y-6">
+            <CinematicCard delay={0.5}>
+              <div className="p-6 border-b border-white/5">
+                <h3 className="text-xl font-medium flex items-center gap-3 text-[#E1E0CC]">
+                  <Grid3X3 className="w-5 h-5 opacity-60" /> Skill Heatmap
+                </h3>
+              </div>
+              <div className="p-6">
+                <SkillHeatmap topicScores={topicScores} />
+              </div>
+            </CinematicCard>
+
+            <CinematicCard delay={0.6}>
+              <div className="p-6 border-b border-white/5">
+                <h3 className="text-xl font-medium flex items-center gap-3 text-[#E1E0CC]">
+                  <Flame className="w-5 h-5 opacity-60" /> Focus Areas
+                </h3>
+              </div>
+              <div className="p-6 space-y-3">
+                {weakTopics.length === 0 ? (
+                  <p className="text-sm text-[#E1E0CC]/40">Complete more sessions to get tailored practice recommendations.</p>
+                ) : (
+                  weakTopics.map((item, idx) => (
+                    <div key={idx} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 text-sm text-[#E1E0CC]/70 font-medium hover:bg-white/[0.04] transition-colors">
+                      {item}
+                    </div>
+                  ))
+                )}
+              </div>
+            </CinematicCard>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

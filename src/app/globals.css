@@ -7,31 +7,49 @@
   :root,
   html {
     color-scheme: dark;
-    --bg: #000000;
-    --fg: #e5e5e5;
-    --accent: rgba(255,255,255,0.1);
-    --card: rgba(255,255,255,0.04);
-    --border: rgba(255,255,255,0.08);
-    --muted: rgba(255,255,255,0.6);
-    --invert: 0;
+    --bg: #080808;
+    --fg: #f0f0f0;
     
-    /* Keep Tailwind compatibility */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 90%;
-    --card-foreground: 0 0% 90%;
-    --popover: 0 0% 0%;
-    --popover-foreground: 0 0% 90%;
-    --primary: 0 0% 90%;
-    --primary-foreground: 0 0% 10%;
+    /* === MagicUI / Apple HIG Foundation === */
+    --space-unit: 0.25rem;
+    --radius-base: 0.75rem;           /* 12px — squircle-ish cards */
+    --radius-card: 1.5rem;            /* 24px — Apple large cards */
+    --radius-pill: 9999px;
+    --tab-bar-height: 3.25rem;
+    --top-bar-height: 3rem;
+    --sidebar-width: 15rem;
+    --tab-bar-label-size: 0.6875rem;
+    --breakpoint-lg: 1024px;
+    
+    /* Titanium color palette */
+    --titanium-50: #fafafa;
+    --titanium-200: #e5e5e5;
+    --titanium-400: #a3a3a3;
+    --titanium-600: #525252;
+    --titanium-800: #262626;
+    --titanium-950: #0a0a0a;
+
+    /* Tailwind compatibility (oklch-aligned) */
+    --background: 0 0% 3%;         /* #080808 */
+    --foreground: 0 0% 94%;        /* #f0f0f0 */
+    --card: 0 0% 6%;               /* #0f0f0f */
+    --card-foreground: 0 0% 94%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 94%;
+    --primary: 0 0% 94%;           /* white - primary actions */
+    --primary-foreground: 0 0% 4%;
     --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 90%;
-    --muted-foreground: 0 0% 60%;
+    --secondary-foreground: 0 0% 80%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 0 0% 12%;
     --accent-foreground: 0 0% 90%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 90%;
-    --input: 0 0% 10%;
-    --ring: 0 0% 90%;
-    --radius: 0.5rem;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 12%;            /* very subtle white borders */
+    --input: 0 0% 9%;
+    --ring: 0 0% 70%;
+    --radius: 0.75rem;
   }
 }
 
@@ -44,6 +62,8 @@
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
+    overscroll-behavior: none; /* HIG Mobile */
+    -webkit-tap-highlight-color: transparent; /* HIG Mobile */
   }
 
   body {
@@ -230,11 +250,67 @@
   }
 }
 
-@keyframes subtle-pulse {
-  0%, 100% {
-    opacity: 1;
+/* ===================================================
+   MagicUI Animation Keyframes
+   Source: https://magicui.design
+   =================================================== */
+
+@keyframes aurora {
+  from {
+    background-position: 50% 50%, 50% 50%;
   }
-  50% {
-    opacity: 0.95;
+  to {
+    background-position: 350% 50%, 350% 50%;
   }
 }
+
+@keyframes shimmer-slide {
+  to {
+    transform: translate(calc(100cqw - 100%), 0);
+  }
+}
+
+@keyframes spin-around {
+  0% {
+    transform: translateZ(0) rotate(0);
+  }
+  15%, 35% {
+    transform: translateZ(0) rotate(90deg);
+  }
+  65%, 85% {
+    transform: translateZ(0) rotate(270deg);
+  }
+  100% {
+    transform: translateZ(0) rotate(360deg);
+  }
+}
+
+@keyframes background-position-spin {
+  0% { background-position: top center; }
+  100% { background-position: bottom center; }
+}
+
+@keyframes shiny-text {
+  0%, 90%, 100% {
+    background-position: calc(-100% - var(--shiny-width)) 0;
+  }
+  30%, 60% {
+    background-position: calc(100% + var(--shiny-width)) 0;
+  }
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg) translateY(calc(var(--radius) * 1px)) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateY(calc(var(--radius) * 1px)) rotate(-360deg);
+  }
+}
+
+@keyframes ripple {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(0.9); }
+}
+
+/* Original tunnel & organic animation keyframes preserved */
