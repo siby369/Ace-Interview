@@ -18,20 +18,23 @@ function InterviewStartContent() {
 
   const roleName = searchParams.get('role') || 'Selected Role';
   const company = searchParams.get('company') || '';
+  const rawJD = searchParams.get('jd') || '';
   const persona = searchParams.get('persona') || 'friendly';
   const questionCount = parseInt(searchParams.get('questionCount') || '5', 10);
+  const codingOnly = searchParams.get('codingOnly') === 'true';
+  const difficulty = searchParams.get('difficulty');
   
   const topics: Record<string, string> = {};
   let jdContext = null;
   searchParams.forEach((value, key) => {
-    if(key !== 'role' && key !== 'questionCount' && key !== 'company' && key !== 'persona' && key !== 'jdContext') {
+    if(key !== 'role' && key !== 'questionCount' && key !== 'company' && key !== 'persona' && key !== 'jdContext' && key !== 'jd' && key !== 'codingOnly' && key !== 'difficulty') {
       topics[key] = value;
     } else if (key === 'jdContext') {
       try { jdContext = JSON.parse(value); } catch { /* ignore */ }
     }
   });
 
-  if (error || Object.keys(topics).length === 0) {
+  if (error || (Object.keys(topics).length === 0 && !rawJD && !jdContext)) {
     return (
       <div className="flex flex-col h-screen">
         <main className="flex-1 flex items-center justify-center p-4">
@@ -58,6 +61,8 @@ function InterviewStartContent() {
         topics={topics}
         targetQuestionCount={questionCount}
         jdContext={jdContext ?? undefined}
+        rawJD={rawJD}
+        codingOnly={codingOnly}
       />
     </div>
   );
