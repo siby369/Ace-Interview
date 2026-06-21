@@ -33,7 +33,7 @@ function InterviewStartContent() {
     }
   });
 
-  if (error || (Object.keys(topics).length === 0 && !rawJD && !jdContext)) {
+  if (error) {
     return (
       <div className="flex flex-col h-screen">
         <main className="flex-1 flex items-center justify-center p-4">
