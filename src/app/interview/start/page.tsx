@@ -22,7 +22,6 @@ function InterviewStartContent() {
   const persona = searchParams.get('persona') || 'friendly';
   const questionCount = parseInt(searchParams.get('questionCount') || '5', 10);
   const codingOnly = searchParams.get('codingOnly') === 'true';
-  const difficulty = searchParams.get('difficulty');
   
   const topics: Record<string, string> = {};
   let jdContext = null;

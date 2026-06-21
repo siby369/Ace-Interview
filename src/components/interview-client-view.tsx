@@ -45,6 +45,8 @@ interface InterviewClientViewProps {
     seniority: string;
   };
   panel?: Array<{ id: string; name: string; role: string; focus: string }>;
+  rawJD?: string;
+  codingOnly?: boolean;
 }
 
 const supportedLanguages = [
@@ -56,7 +58,7 @@ const supportedLanguages = [
   { name: 'Chinese (Mandarin, Simplified)', code: 'cmn-CN' },
 ];
 
-export function InterviewClientView({ initialInterviewData, role, company, persona = 'friendly', topics, targetQuestionCount, jdContext, panel }: InterviewClientViewProps) {
+export function InterviewClientView({ initialInterviewData, role, company, persona = 'friendly', topics, targetQuestionCount, jdContext, panel, rawJD, codingOnly = false }: InterviewClientViewProps) {
   const router = useRouter();
   const { toast } = useToast();
   const settings = loadPracticeSettings();
@@ -129,22 +131,34 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
             jobRole: role,
             previousQuestions: [],
             jdContext,
+            companyName: company,
+            rawJD,
+            codingOnly,
           });
         } else {
           firstQuestion = await generateSingleInterviewQuestion({
-            role: `${role}${company ? ` for ${company}` : ''} (${persona})`,
+            role: `${role} (${persona})`,
             topics: adaptiveTopics,
             previousQuestions: [],
             jdContext,
+            companyName: company,
+            rawJD,
+            codingOnly,
           });
         }
         if (cancelled) return;
         setAllQuestions([firstQuestion]);
         loadingTargetRef.current = 1;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch initial question:', error);
         if (!cancelled) {
-          setInitialQuestionError('We could not prepare your first question right now. Please try again.');
+          if (error.message === 'OUT_OF_TOKENS') {
+            setInitialQuestionError('OUT_OF_TOKENS');
+          } else if (error.message === 'UNAUTHENTICATED') {
+            setInitialQuestionError('UNAUTHENTICATED');
+          } else {
+            setInitialQuestionError('We could not prepare your first question right now. Please try again.');
+          }
         }
       } finally {
         if (!cancelled) {
@@ -179,13 +193,19 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
           jobRole: role,
           previousQuestions: allQuestions.map(q => q.question),
           jdContext,
+          companyName: company,
+          rawJD,
+          codingOnly,
         });
       } else {
         questionPromise = generateSingleInterviewQuestion({
-          role,
+          role: `${role} (${persona})`,
           topics: adaptiveTopics,
           previousQuestions: allQuestions.map(q => q.question),
           jdContext,
+          companyName: company,
+          rawJD,
+          codingOnly,
         });
       }
 
@@ -194,6 +214,11 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
         setIsGeneratingNext(false);
       }).catch(err => {
         console.error("Failed to fetch next question:", err);
+        if (err.message === 'OUT_OF_TOKENS') {
+          setInitialQuestionError('OUT_OF_TOKENS');
+        } else if (err.message === 'UNAUTHENTICATED') {
+          setInitialQuestionError('UNAUTHENTICATED');
+        }
         loadingTargetRef.current = allQuestions.length;
         setIsGeneratingNext(false);
       });
@@ -382,13 +407,24 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
           setRewrite(null);
         })
         .finally(() => setIsGeneratingRewrite(false));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get feedback', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to get feedback from the AI. Please try again.',
-        variant: 'destructive',
-      });
+      if (error.message === 'OUT_OF_TOKENS') {
+        setInitialQuestionError('OUT_OF_TOKENS');
+        toast({
+          title: 'Token limit reached',
+          description: 'You have used all your free AI tokens. Please upgrade to continue.',
+          variant: 'destructive',
+        });
+      } else if (error.message === 'UNAUTHENTICATED') {
+        setInitialQuestionError('UNAUTHENTICATED');
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to get feedback from the AI. Please try again.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsSubmitting(false);
       setIsTranscribing(false);
@@ -472,6 +508,59 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
     saveSession(false);
   }, [role, company, persona, topics, targetQuestionCount, sessionAnswers, sessionReview]);
 
+  if (initialQuestionError === 'OUT_OF_TOKENS') {
+    return (
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#080808] text-[#E1E0CC]">
+        <div className="max-w-md w-full space-y-8 text-center p-8 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md shadow-2xl">
+          <div className="space-y-4">
+            <div className="h-16 w-16 mx-auto rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
+              <ShieldAlert className="h-8 w-8 text-red-400" />
+            </div>
+            <h1 className="text-3xl font-medium tracking-tight">Token Limit Reached</h1>
+            <p className="text-[#E1E0CC]/60 text-base leading-relaxed">
+              You have used all the free practice tokens allocated to your account.
+              Please upgrade to our Premium tier to continue practicing with our virtual interview panel.
+            </p>
+          </div>
+          <div className="space-y-3 pt-4">
+            <Button size="lg" className="w-full text-base h-12 bg-[#E1E0CC] hover:bg-[#E1E0CC]/90 text-black font-semibold rounded-xl" onClick={() => router.push('/dashboard')}>
+              Upgrade to Premium
+            </Button>
+            <Button variant="ghost" size="lg" className="w-full text-base h-12 border border-white/10 hover:bg-white/5 text-[#E1E0CC]/60 rounded-xl" onClick={() => router.push('/dashboard')}>
+              Return to Dashboard
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (initialQuestionError === 'UNAUTHENTICATED') {
+    return (
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#080808] text-[#E1E0CC]">
+        <div className="max-w-md w-full space-y-8 text-center p-8 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md shadow-2xl">
+          <div className="space-y-4">
+            <div className="h-16 w-16 mx-auto rounded-full bg-[#E1E0CC]/10 flex items-center justify-center border border-[#E1E0CC]/20">
+              <ShieldAlert className="h-8 w-8 text-[#E1E0CC]" />
+            </div>
+            <h1 className="text-3xl font-medium tracking-tight">Authentication Required</h1>
+            <p className="text-[#E1E0CC]/60 text-base leading-relaxed">
+              You must be logged in to access the virtual interview panel and track your practice session progress.
+            </p>
+          </div>
+          <div className="space-y-3 pt-4">
+            <Button size="lg" className="w-full text-base h-12 bg-[#E1E0CC] hover:bg-[#E1E0CC]/90 text-black font-semibold rounded-xl" onClick={() => router.push('?auth=login')}>
+              Log In
+            </Button>
+            <Button variant="ghost" size="lg" className="w-full text-base h-12 border border-white/10 hover:bg-white/5 text-[#E1E0CC]/60 rounded-xl" onClick={() => router.push('/')}>
+              Go Home
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (!hasStarted) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-background">
@@ -495,8 +584,8 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
   return (
     <>
       {!isFullscreen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md">
-          <div className="max-w-md p-8 bg-card border rounded-xl shadow-lg text-center space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4">
+          <div className="max-w-md w-full p-8 bg-card border rounded-xl shadow-lg text-center space-y-6">
             <AlertTriangle className="h-16 w-16 mx-auto text-destructive" />
             <h2 className="text-2xl font-bold">Fullscreen Required</h2>
             <p className="text-muted-foreground">
@@ -541,15 +630,15 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
 
             <div className="min-h-[160px] flex flex-col items-center justify-center w-full mt-4">
               {currentQuestion ? (
-                <div className="relative group w-full flex justify-center">
-                  <h1 className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight text-[#E1E0CC] leading-tight px-8 max-w-5xl drop-shadow-md">
+                <div className="relative group w-full flex flex-col md:flex-row justify-center items-center">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-[#E1E0CC] leading-tight px-4 sm:px-8 max-w-5xl drop-shadow-md text-center">
                     {currentQuestionText}
                   </h1>
-                  <div className="absolute -right-4 md:-right-16 top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" onClick={playQuestionAudio} className="rounded-full bg-white/5 hover:bg-white/10 text-[#E1E0CC]">
+                  <div className="flex md:absolute md:-right-16 md:top-1/2 md:-translate-y-1/2 mt-6 md:mt-0 flex-row md:flex-col justify-center gap-4 md:gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" onClick={playQuestionAudio} className="rounded-full bg-white/5 hover:bg-white/10 text-[#E1E0CC] h-10 w-10 md:h-12 md:w-12">
                       <Volume2 className="h-5 w-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="rounded-full bg-white/5 hover:bg-white/10 text-[#E1E0CC]" onClick={() => {
+                    <Button variant="ghost" size="icon" className="rounded-full bg-white/5 hover:bg-white/10 text-[#E1E0CC] h-10 w-10 md:h-12 md:w-12" onClick={() => {
                         const sessions = loadInterviewSessions();
                         const current = sessions.find((item) => item.id === sessionId);
                         if (current && !current.bookmarkedQuestions.includes(currentQuestionText)) {
@@ -615,7 +704,7 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
                 />
 
                 {/* Dynamic Island Toolbar */}
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] z-50 transition-all duration-500">
+                <div className="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] z-50 transition-all duration-500 w-[95vw] sm:w-max overflow-x-auto no-scrollbar justify-between sm:justify-start">
                     <div className="flex items-center gap-2 pl-2">
                        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
                         <SelectTrigger className="w-[140px] rounded-full bg-transparent border-none focus:ring-0 text-[#E1E0CC]/80 hover:text-[#E1E0CC]">
