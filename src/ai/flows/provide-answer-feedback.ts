@@ -11,6 +11,7 @@
 
 import { fastGroq } from '@/ai/groq';
 import { z } from 'zod';
+import { checkAndConsumeQuota } from '@/lib/quota';
 // import { getPronunciationFeedback } from './get-pronunciation-feedback';
 
 const ProvideAnswerFeedbackInputSchema = z.object({
@@ -56,6 +57,11 @@ const ProvideAnswerFeedbackOutputSchema = z.object({
 export type ProvideAnswerFeedbackOutput = z.infer<typeof ProvideAnswerFeedbackOutputSchema>;
 
 export async function provideAnswerFeedback(input: ProvideAnswerFeedbackInput): Promise<ProvideAnswerFeedbackOutput> {
+  const quota = await checkAndConsumeQuota(3);
+  if (!quota.success) {
+    throw new Error(quota.error);
+  }
+
   const { jobRole, interviewQuestion, userAnswerText } = input;
 
   const prompt = `You are an AI interview coach providing feedback to a candidate.

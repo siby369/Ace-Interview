@@ -1,3 +1,23 @@
+async function getCustomApiKey(): Promise<string | null> {
+  try {
+    const { createClient } = await import('@/utils/supabase/server');
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('custom_api_key')
+      .eq('id', user.id)
+      .single();
+      
+    return profile?.custom_api_key || null;
+  } catch (error) {
+    console.error('Error fetching custom API key from Supabase:', error);
+    return null;
+  }
+}
+
 export const groq = {
   chat: {
     completions: {
@@ -6,7 +26,8 @@ export const groq = {
         model: string;
         response_format?: { type: 'json_object' | 'text' };
       }) => {
-        const apiKey = process.env.TEXT_API_KEY || process.env.GROQ_API_KEY || 'localmode';
+        const customKey = await getCustomApiKey();
+        const apiKey = customKey || process.env.TEXT_API_KEY || process.env.GROQ_API_KEY || 'localmode';
         const authHeader = apiKey.startsWith('Bearer ') ? apiKey : `Bearer ${apiKey}`;
         const baseUrl = process.env.TEXT_BASE_URL || 'https://api.groq.com/openai/v1';
         
@@ -42,9 +63,10 @@ export const fastGroq = {
         model: string;
         response_format?: { type: 'json_object' | 'text' };
       }) => {
-        const apiKey = process.env.GROQ_API_KEY;
+        const customKey = await getCustomApiKey();
+        const apiKey = customKey || process.env.GROQ_API_KEY;
         if (!apiKey) {
-          throw new Error("GROQ_API_KEY is not set. Please get a free key from console.groq.com to use the fast analysis engine.");
+          throw new Error("Groq API Key is not set. Please open Settings in the top-right and enter your Groq API Key to start practicing.");
         }
         
         const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
@@ -105,7 +127,8 @@ async function createWithTimeout(
 }
 
 export async function createFastTextCompletion(params: CompletionParams) {
-  const groqKey = process.env.GROQ_API_KEY;
+  const customKey = await getCustomApiKey();
+  const groqKey = customKey || process.env.GROQ_API_KEY;
   const textKey = process.env.TEXT_API_KEY;
   const textBaseUrl = process.env.TEXT_BASE_URL || 'https://openrouter.ai/api/v1';
 
@@ -154,5 +177,5 @@ export async function createFastTextCompletion(params: CompletionParams) {
     }
   }
 
-  throw new Error(errors.join(' | ') || 'No text generation provider configured.');
+  throw new Error(errors.join(' | ') || 'No API key configured. Please open Settings in the top-right and enter your Groq API Key to start practicing.');
 }

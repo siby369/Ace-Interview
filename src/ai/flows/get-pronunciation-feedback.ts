@@ -3,6 +3,7 @@
 import { transcribeAudio } from './transcribe-audio';
 import { groq } from '@/ai/groq';
 import { z } from 'zod';
+import { checkAndConsumeQuota } from '@/lib/quota';
 
 const GetPronunciationFeedbackInputSchema = z.object({
   audioDataUri: z.string().describe("A chunk of audio, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"),
@@ -37,6 +38,11 @@ function scoreTranscript(expectedText: string, transcript: string) {
 export async function getPronunciationFeedback(
   input: GetPronunciationFeedbackInput
 ): Promise<GetPronunciationFeedbackOutput> {
+  const quota = await checkAndConsumeQuota(3);
+  if (!quota.success) {
+    throw new Error(quota.error);
+  }
+
   const { audioDataUri, expectedText } = GetPronunciationFeedbackInputSchema.parse(input);
 
   const transcriptResult = await transcribeAudio({ audioDataUri, languageCode: 'en-US' });

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface WordPullUpProps {
@@ -16,9 +16,9 @@ export function WordPullUp({
   wordClassName,
   delayMultiple = 0.12,
 }: WordPullUpProps) {
-  const pullupVariant = {
+  const pullupVariant: Variants = {
     initial: { y: 100, opacity: 0 },
-    animate: (i: number) => ({
+    animate: (i: any) => ({
       y: 0,
       opacity: 1,
       transition: {

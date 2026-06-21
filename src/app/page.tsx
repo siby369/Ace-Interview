@@ -5,7 +5,7 @@ import { Bot, LineChart, Code } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-black selection:bg-white/20">
+    <div className="relative h-screen w-full overflow-hidden bg-black selection:bg-white/20">
       {/* ── Prisma Hero Section ── */}
       <PrismaHero />
     </div>

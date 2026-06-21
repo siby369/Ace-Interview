@@ -60,14 +60,14 @@ export const PrismaHero = () => {
     ? [
         { name: 'Dashboard', href: '/dashboard' },
         { name: 'Interviews', href: '/interview/new' },
-        { name: 'Features', href: '/features' },
+        { name: 'How it Works', href: '/how-it-works' },
       ]
     : [
-        { name: 'Features', href: '/features' },
+        { name: 'How it Works', href: '/how-it-works' },
       ];
 
   return (
-    <section className="h-screen w-full">
+    <section className="h-screen relative left-[50%] right-[50%] -ml-[50vw] -mr-[50vw] w-screen max-w-[100vw]">
       <div className="relative h-full w-full overflow-hidden rounded-2xl md:rounded-[2rem]">
         
         {/* Background video */}
@@ -95,7 +95,7 @@ export const PrismaHero = () => {
                 className="font-medium leading-[0.85] tracking-[-0.07em] text-[18vw] sm:text-[16vw] md:text-[14vw] lg:text-[12vw] xl:text-[12vw] 2xl:text-[13vw]"
                 style={{ color: "#E1E0CC" }}
               >
-                <WordsPullUp text="Ace Interview*" showAsterisk={false} />
+                <WordsPullUp text="Ace Interview" showAsterisk={false} />
               </h1>
             </div>
 

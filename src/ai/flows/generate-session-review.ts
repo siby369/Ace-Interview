@@ -2,6 +2,7 @@
 
 import { groq } from '@/ai/groq';
 import { z } from 'zod';
+import { checkAndConsumeQuota } from '@/lib/quota';
 
 const AnswerSchema = z.object({
   question: z.string(),
@@ -27,6 +28,11 @@ const OutputSchema = z.object({
 export type GenerateSessionReviewOutput = z.infer<typeof OutputSchema>;
 
 export async function generateSessionReview(input: z.infer<typeof InputSchema>): Promise<GenerateSessionReviewOutput> {
+  const quota = await checkAndConsumeQuota(5);
+  if (!quota.success) {
+    throw new Error(quota.error);
+  }
+
   const { role, company, persona, answers } = InputSchema.parse(input);
   const prompt = `You are an interview coach creating a session review.
 

@@ -14,6 +14,7 @@ export type PronunciationFeedback = GetPronunciationFeedbackOutput;
 export type InterviewPersona = 'friendly' | 'strict' | 'faang' | 'rapid-fire';
 
 export interface InterviewAnswerRecord {
+  id?: string;
   question: string;
   answer: string;
   score: number;

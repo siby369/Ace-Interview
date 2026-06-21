@@ -64,6 +64,7 @@
     user-select: none; /* Standard syntax */
     overscroll-behavior: none; /* HIG Mobile */
     -webkit-tap-highlight-color: transparent; /* HIG Mobile */
+    scrollbar-gutter: stable;
   }
 
   body {

@@ -8,6 +8,9 @@ import { AuthModal } from '@/components/auth-modal';
 import { Suspense, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
+import { AnimatedText } from '@/components/ui/animated-underline-text-one';
+import { syncCloudToLocal } from '@/lib/storage';
+import { GradientBackground } from '@/components/ui/paper-design-shader-background';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -22,10 +25,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     // Check active session on mount and subscribe to auth changes
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        syncCloudToLocal().catch(err => console.error('Sync error on mount:', err));
+      }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        syncCloudToLocal().catch(err => console.error('Sync error on auth change:', err));
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -36,14 +45,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     ? [
         { label: 'Dashboard', href: '/dashboard' },
         { label: 'Interviews', href: '/interview/new' },
-        { label: 'Features', href: '/features' },
+        { label: 'How it Works', href: '/how-it-works' },
       ]
     : [
-        { label: 'Features', href: '/features' },
+        { label: 'How it Works', href: '/how-it-works' },
       ];
 
   return (
-    <div className="min-h-screen bg-[#080808] relative">
+    <div className={cn("bg-[#080808] relative w-full", isLandingPage ? "h-[100dvh] overflow-hidden" : "min-h-screen")}>
       {/* Global Video Background */}
       {isAuthPage && (
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -58,6 +67,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
+      {/* Blurred Shader Background (All pages except landing page) */}
+      {!isLandingPage && <GradientBackground />}
+
       {/* Global Noise Overlay */}
       <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.7] mix-blend-overlay" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
 
@@ -65,61 +77,78 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {!isLandingPage && !isInterviewSession && (
         <Link 
           href="/" 
-          className="fixed top-6 left-6 md:top-8 md:left-8 z-50 text-sm md:text-base font-semibold tracking-tight transition-opacity hover:opacity-80"
+          className="fixed top-6 left-6 md:top-8 md:left-8 z-50 transition-opacity hover:opacity-80"
           style={{ color: "#E1E0CC" }}
         >
-          AceInterview*
+          <AnimatedText 
+            text="AceInterview" 
+            textClassName="text-sm md:text-base font-semibold tracking-tight" 
+            underlineDuration={1.2}
+          />
         </Link>
       )}
 
       {/* Cinematic Top Navigation (Hidden on interview sessions) */}
       {!isInterviewSession && (
-        <nav className="fixed left-1/2 top-0 z-50 -translate-x-1/2 hidden md:block transition-all duration-300">
-          <div className="flex items-center gap-3 rounded-b-2xl bg-black/80 backdrop-blur-md border-b border-white/10 px-4 py-2 sm:gap-6 md:gap-12 md:rounded-b-3xl md:px-8 lg:gap-14">
-            {navItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="text-[10px] transition-colors sm:text-xs md:text-sm whitespace-nowrap"
-                style={{ color: "rgba(225, 224, 204, 0.8)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#E1E0CC")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(225, 224, 204, 0.8)")}
-              >
-                {item.label}
-              </Link>
-            ))}
-            
-            {user ? (
-              <button
-                onClick={() => supabase.auth.signOut()}
-                className="text-[10px] transition-colors sm:text-xs md:text-sm whitespace-nowrap"
-                style={{ color: "rgba(225, 224, 204, 0.8)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#E1E0CC")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(225, 224, 204, 0.8)")}
-              >
-                Sign out
-              </button>
-            ) : (
-              <Link
-                href="?auth=login"
-                className="text-[10px] transition-colors sm:text-xs md:text-sm whitespace-nowrap"
-                style={{ color: "rgba(225, 224, 204, 0.8)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#E1E0CC")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(225, 224, 204, 0.8)")}
-              >
-                Log in
-              </Link>
-            )}
+        <nav className="fixed inset-x-0 top-0 z-50 mx-auto w-fit transition-all duration-300">
+          <div className="flex items-center gap-2 sm:gap-4 md:gap-6 rounded-b-2xl bg-black/80 backdrop-blur-md border-b border-white/10 px-4 py-2 md:rounded-b-3xl md:px-6 w-[100vw] sm:w-auto justify-center overflow-x-auto no-scrollbar">
+            {[
+              ...navItems.map((item) => {
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={cn(
+                      "relative px-3 py-1.5 rounded-full text-[11px] transition-all duration-300 sm:text-xs md:text-sm whitespace-nowrap",
+                      isActive ? "bg-white/10 text-[#E1E0CC] font-medium" : "text-[#E1E0CC]/60 hover:text-[#E1E0CC] hover:bg-white/5"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              }),
+              ...(user ? [
+                <button
+                  key="signout"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    if (typeof window !== 'undefined') {
+                      window.localStorage.removeItem('ace-interview.sessions');
+                      window.dispatchEvent(new Event('ace-interview:sessions-updated'));
+                    }
+                  }}
+                  className="relative px-3 py-1.5 rounded-full text-[11px] transition-all duration-300 sm:text-xs md:text-sm whitespace-nowrap text-[#E1E0CC]/60 hover:text-[#E1E0CC] hover:bg-white/5"
+                >
+                  Sign out
+                </button>
+              ] : [
+                <Link
+                  key="signin"
+                  href="?auth=login"
+                  className="relative px-3 py-1.5 rounded-full text-[11px] transition-all duration-300 sm:text-xs md:text-sm whitespace-nowrap text-[#E1E0CC]/60 hover:text-[#E1E0CC] hover:bg-white/5"
+                >
+                  Log in
+                </Link>,
+                <Link
+                  key="signup"
+                  href="?auth=signup"
+                  className="relative px-3 py-1.5 rounded-full text-[11px] transition-all duration-300 sm:text-xs md:text-sm whitespace-nowrap text-[#E1E0CC]/60 hover:text-[#E1E0CC] hover:bg-white/5"
+                >
+                  Sign up
+                </Link>
+              ])
+            ]}
           </div>
         </nav>
       )}
 
-      {/* Main content */}
       <main
         className={cn(
           "relative z-10",
           !isLandingPage && !isInterviewSession && 'pt-24 pb-12', // Extra padding for top nav
-          isInterviewSession && 'h-screen overflow-hidden'
+          isLandingPage && 'h-[100dvh] w-full overflow-hidden',
+          isInterviewSession && 'min-h-[100dvh] w-full overflow-y-auto pb-32'
         )}
       >
         {children}

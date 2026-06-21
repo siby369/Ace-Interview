@@ -33,7 +33,11 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthRoute = request.nextUrl.searchParams.has('auth')
   const isApiAuthRoute = request.nextUrl.pathname.startsWith('/api/auth')
-  const isPublicRoute = request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/features'
+  const isPublicRoute = 
+    request.nextUrl.pathname === '/' || 
+    request.nextUrl.pathname === '/features' ||
+    request.nextUrl.pathname === '/how-it-works' ||
+    request.nextUrl.pathname.startsWith('/share/')
 
   if (isApiAuthRoute) return supabaseResponse
 
