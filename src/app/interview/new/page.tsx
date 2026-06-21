@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Briefcase, Code, PenTool, PieChart, TriangleAlert } from 'lucide-react';
 import { extractJdTopics } from '@/ai/flows/extract-jd-topics';
 import { parseDocumentToText } from '@/ai/flows/parse-document';
+import { verifyGroqApiKey } from '@/ai/actions/verify-api-key';
 import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -195,6 +196,20 @@ export default function NewInterviewPage() {
           window.dispatchEvent(new CustomEvent('ace-interview:open-settings'));
           setIsStarting(false);
           return;
+        }
+
+        if (profile?.custom_api_key || profile?.tokens_remaining > 0) {
+          const health = await verifyGroqApiKey();
+          if (!health.valid) {
+            toast({
+              title: 'API Error',
+              description: health.error || 'Your API key is invalid or rate limited. Please update it in Settings.',
+              variant: 'destructive',
+            });
+            window.dispatchEvent(new CustomEvent('ace-interview:open-settings'));
+            setIsStarting(false);
+            return;
+          }
         }
       }
     } catch (e) {
