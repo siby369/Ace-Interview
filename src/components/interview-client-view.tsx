@@ -154,6 +154,7 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
         if (!cancelled) {
           if (error.message === 'OUT_OF_TOKENS') {
             setInitialQuestionError('OUT_OF_TOKENS');
+            window.dispatchEvent(new CustomEvent('ace-interview:open-settings'));
           } else if (error.message === 'UNAUTHENTICATED') {
             setInitialQuestionError('UNAUTHENTICATED');
           } else {
@@ -411,9 +412,10 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
       console.error('Failed to get feedback', error);
       if (error.message === 'OUT_OF_TOKENS') {
         setInitialQuestionError('OUT_OF_TOKENS');
+        window.dispatchEvent(new CustomEvent('ace-interview:open-settings'));
         toast({
           title: 'Token limit reached',
-          description: 'You have used all your free AI tokens. Please upgrade to continue.',
+          description: 'Please add your Groq API key in Settings to continue.',
           variant: 'destructive',
         });
       } else if (error.message === 'UNAUTHENTICATED') {
@@ -519,12 +521,12 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
             <h1 className="text-3xl font-medium tracking-tight">Token Limit Reached</h1>
             <p className="text-[#E1E0CC]/60 text-base leading-relaxed">
               You have used all the free practice tokens allocated to your account.
-              Please upgrade to our Premium tier to continue practicing with our virtual interview panel.
+              Please add your own Groq API key in the settings to continue practicing for free.
             </p>
           </div>
           <div className="space-y-3 pt-4">
-            <Button size="lg" className="w-full text-base h-12 bg-[#E1E0CC] hover:bg-[#E1E0CC]/90 text-black font-semibold rounded-xl" onClick={() => router.push('/dashboard')}>
-              Upgrade to Premium
+            <Button size="lg" className="w-full text-base h-12 bg-[#E1E0CC] hover:bg-[#E1E0CC]/90 text-black font-semibold rounded-xl" onClick={() => window.dispatchEvent(new CustomEvent('ace-interview:open-settings'))}>
+              Add Custom API Key
             </Button>
             <Button variant="ghost" size="lg" className="w-full text-base h-12 border border-white/10 hover:bg-white/5 text-[#E1E0CC]/60 rounded-xl" onClick={() => router.push('/dashboard')}>
               Return to Dashboard
