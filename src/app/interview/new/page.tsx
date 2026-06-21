@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Briefcase, Code, PenTool, PieChart } from 'lucide-react';
 import { extractJdTopics } from '@/ai/flows/extract-jd-topics';
 import { parseDocumentToText } from '@/ai/flows/parse-document';
+import { createClient } from '@/utils/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const ROLES = [
   { name: 'Software Engineer', icon: Code },
@@ -31,6 +33,9 @@ const topicsByRole: Record<string, string[]> = {
 
 export default function NewInterviewPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const supabase = createClient();
+  const [isStarting, setIsStarting] = useState(false);
   
   const [role, setRole] = useState(ROLES[0].name);
   const [customRole, setCustomRole] = useState('');
@@ -145,7 +150,33 @@ export default function NewInterviewPage() {
     }
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
+    setIsStarting(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('tokens_remaining, custom_api_key')
+          .eq('id', user.id)
+          .single();
+          
+        if (profile && profile.tokens_remaining <= 0 && !profile.custom_api_key) {
+          toast({
+            title: 'Token limit reached',
+            description: 'Please add your Groq API key in Settings to continue.',
+            variant: 'destructive',
+          });
+          window.dispatchEvent(new CustomEvent('ace-interview:open-settings'));
+          setIsStarting(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     const searchParams = new URLSearchParams();
     
     if (setupMode === 'manual') {
@@ -526,9 +557,10 @@ export default function NewInterviewPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }} className="mt-12">
           <button
             onClick={handleStart}
-            className="group inline-flex items-center gap-3 rounded-full bg-[#E1E0CC] py-2 pl-8 pr-2 text-lg font-medium text-black transition-all hover:gap-4 hover:scale-105"
+            disabled={isStarting}
+            className="group inline-flex items-center gap-3 rounded-full bg-[#E1E0CC] py-2 pl-8 pr-2 text-lg font-medium text-black transition-all hover:gap-4 hover:scale-105 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:gap-3"
           >
-            Start Session
+            {isStarting ? 'Starting...' : 'Start Session'}
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black transition-transform group-hover:scale-110">
               <ArrowRight className="h-5 w-5" style={{ color: "#E1E0CC" }} />
             </span>

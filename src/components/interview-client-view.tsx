@@ -8,6 +8,7 @@ import { generateSessionReview } from '@/ai/flows/generate-session-review';
 import { coachSpeechDelivery, type CoachSpeechDeliveryOutput } from '@/ai/flows/coach-speech-delivery';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { generatePanelQuestion } from '@/ai/flows/generate-panel-question';
+import Editor from '@monaco-editor/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight, Languages, LoaderCircle, Mic, MicOff, Sparkles, Square, Volume2, Bookmark, RotateCcw, FileText, Maximize, ShieldAlert, AlertTriangle, Play, BrainCircuit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -690,15 +691,45 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
                   render={({ field }) => (
                     <FormItem className="flex-1 flex flex-col items-center justify-center w-full max-w-5xl mx-auto mb-24">
                       <FormControl>
-                        <Textarea
-                          placeholder={
-                            currentQuestion.requiresTyping
-                              ? 'Write your code here...'
-                              : 'Speak your answer... or type it here.'
-                          }
-                          className="flex-1 min-h-[40vh] w-full resize-none text-3xl md:text-5xl font-light text-center p-6 bg-transparent border-none focus-visible:ring-0 text-[#E1E0CC] placeholder:text-[#E1E0CC]/10 leading-snug drop-shadow-sm transition-all focus:text-[#E1E0CC]/90"
-                          {...field}
-                        />
+                        {currentQuestion.requiresTyping || codingOnly ? (
+                          <div className="w-full max-w-5xl h-[50vh] min-h-[400px] border border-white/10 rounded-xl overflow-hidden shadow-2xl relative text-left">
+                            <div className="absolute top-0 left-0 right-0 h-10 bg-white/5 border-b border-white/10 flex items-center px-4 z-10 backdrop-blur-md">
+                              <div className="flex gap-1.5">
+                                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                                <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+                              </div>
+                              <span className="ml-4 text-xs font-mono text-white/40">solution.ts</span>
+                            </div>
+                            <div className="pt-10 h-full w-full bg-[#1e1e1e]">
+                              <Editor
+                                height="100%"
+                                defaultLanguage="typescript"
+                                theme="vs-dark"
+                                value={field.value}
+                                onChange={(value) => field.onChange(value || '')}
+                                options={{
+                                  minimap: { enabled: false },
+                                  fontSize: 16,
+                                  fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                                  padding: { top: 24, bottom: 24 },
+                                  scrollBeyondLastLine: false,
+                                  smoothScrolling: true,
+                                  cursorBlinking: "smooth",
+                                  cursorSmoothCaretAnimation: "on",
+                                  formatOnPaste: true,
+                                }}
+                                loading={<div className="flex items-center justify-center h-full text-white/50">Loading editor...</div>}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <Textarea
+                            placeholder="Speak your answer... or type it here."
+                            className="flex-1 min-h-[40vh] w-full resize-none text-3xl md:text-5xl font-light text-center p-6 bg-transparent border-none focus-visible:ring-0 text-[#E1E0CC] placeholder:text-[#E1E0CC]/10 leading-snug drop-shadow-sm transition-all focus:text-[#E1E0CC]/90"
+                            {...field}
+                          />
+                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
