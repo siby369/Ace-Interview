@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowRight, Briefcase, Code, PenTool, PieChart } from 'lucide-react';
+import { ArrowRight, Briefcase, Code, PenTool, PieChart, TriangleAlert } from 'lucide-react';
 import { extractJdTopics } from '@/ai/flows/extract-jd-topics';
 import { parseDocumentToText } from '@/ai/flows/parse-document';
 import { createClient } from '@/utils/supabase/client';
@@ -36,6 +36,30 @@ export default function NewInterviewPage() {
   const { toast } = useToast();
   const supabase = createClient();
   const [isStarting, setIsStarting] = useState(false);
+  const [hasQuota, setHasQuota] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function checkQuota() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('tokens_remaining, custom_api_key')
+          .eq('id', user.id)
+          .single();
+        if (profile && profile.tokens_remaining <= 0 && !profile.custom_api_key) {
+          setHasQuota(false);
+        } else {
+          setHasQuota(true);
+        }
+      } else {
+        setHasQuota(false); // require login/quota
+      }
+    }
+    checkQuota();
+    window.addEventListener('ace-interview:settings-updated', checkQuota);
+    return () => window.removeEventListener('ace-interview:settings-updated', checkQuota);
+  }, [supabase]);
   
   const [role, setRole] = useState(ROLES[0].name);
   const [customRole, setCustomRole] = useState('');
@@ -555,9 +579,19 @@ export default function NewInterviewPage() {
 
         {/* CTA */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }} className="mt-12">
+          {hasQuota === false && (
+            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm max-w-fit">
+              <TriangleAlert className="h-4 w-4 inline mr-2 -mt-0.5" />
+              You have 0 tokens remaining. Please{' '}
+              <button onClick={() => window.dispatchEvent(new CustomEvent('ace-interview:open-settings'))} className="underline font-bold hover:text-red-100">
+                enter your Groq API key
+              </button>{' '}
+              to continue practicing for free.
+            </div>
+          )}
           <button
             onClick={handleStart}
-            disabled={isStarting}
+            disabled={isStarting || hasQuota === false}
             className="group inline-flex items-center gap-3 rounded-full bg-[#E1E0CC] py-2 pl-8 pr-2 text-lg font-medium text-black transition-all hover:gap-4 hover:scale-105 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:gap-3"
           >
             {isStarting ? 'Starting...' : 'Start Session'}
