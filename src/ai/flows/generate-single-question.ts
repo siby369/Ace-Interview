@@ -2,6 +2,7 @@
 
 import { createFastTextCompletion } from '@/ai/groq';
 import { z } from 'zod';
+import { checkAndConsumeQuota } from '@/lib/quota';
 
 const GenerateSingleInterviewQuestionInputSchema = z.object({
   role: z.string().describe('The role for which to generate interview questions.'),
@@ -14,6 +15,9 @@ const GenerateSingleInterviewQuestionInputSchema = z.object({
     questionAngle: z.string(),
     seniority: z.string(),
   }).optional().describe('Parsed job description context to tailor questions.'),
+  companyName: z.string().optional().describe('The name of the company.'),
+  rawJD: z.string().optional().describe('Raw text of the job description.'),
+  codingOnly: z.boolean().optional().describe('If true, force the question to be a strict coding/implementation task.'),
 });
 
 export type GenerateSingleInterviewQuestionInput = z.infer<typeof GenerateSingleInterviewQuestionInputSchema>;
@@ -28,11 +32,18 @@ export type GenerateSingleInterviewQuestionOutput = z.infer<typeof GenerateSingl
 export async function generateSingleInterviewQuestion(
   input: GenerateSingleInterviewQuestionInput
 ): Promise<GenerateSingleInterviewQuestionOutput> {
-  const { role, topics, previousQuestions, jdContext } = GenerateSingleInterviewQuestionInputSchema.parse(input);
+  const quota = await checkAndConsumeQuota(1);
+  if (!quota.success) {
+    throw new Error(quota.error);
+  }
 
-  const topicStrings = Object.entries(topics)
-    .map(([topic, difficulty]) => `- Topic: ${topic}, Difficulty: ${difficulty}`)
-    .join('\n');
+  const { role, topics, previousQuestions, jdContext, companyName, rawJD, codingOnly } = GenerateSingleInterviewQuestionInputSchema.parse(input);
+
+  const codingOnlyString = codingOnly ? '\nCRITICAL REQUIREMENT: The user has selected "Coding Only" mode. You MUST generate a programming, algorithm, or coding implementation task appropriate for the role (e.g., scripting for SWE, SQL for Data Analysts, HTML/CSS for UX). You MUST set requiresTyping to true.' : '';
+
+  const topicStrings = Object.keys(topics).length > 0 
+    ? `\nSelected Topics to choose from:\n${Object.entries(topics).map(([topic, difficulty]) => `- Topic: ${topic}, Difficulty: ${difficulty}`).join('\n')}\n\nSelect one of the provided topics to focus on, ensuring the question matches the specified difficulty level.`
+    : '\nGenerate a question relevant to the job description and role.';
 
   const previousQuestionsString = previousQuestions.length > 0
     ? `\nPreviously Asked Questions (DO NOT ask anything similar to these):\n${previousQuestions.map(q => `- ${q}`).join('\n')}`
@@ -47,17 +58,26 @@ Job Description Context (tailor the question to match this context closely):
 - Interview Angle: ${jdContext.questionAngle}
 ` : '';
 
+  const companyString = companyName ? `\nTarget Company: ${companyName}` : '';
+  const rawJdString = rawJD ? `\nRaw Job Description:\n${rawJD}\n` : '';
+
   const prompt = `You are an expert interview question generator. For the given role, generate exactly ONE new relevant interview question.
-Select one of the provided topics to focus on, ensuring the question matches the specified difficulty level.
 - If the difficulty is "Easy", ask a straightforward definition-based or simple-concept question. These should not require typing.
 - If the difficulty is "Medium", ask a question that requires explaining a process or comparing concepts. These should not require typing.
-- If the difficulty is "Hard", ask a complex scenario-based or design/coding question. Only set requiresTyping to true for questions that explicitly ask to write code or a complex algorithm.
+- If the difficulty is "Hard", ask a complex scenario-based or design/coding question. For technical roles, ensure you include coding tasks requiring the user to write code (setting requiresTyping to true).
 
-Role: ${role}
+${companyName ? `Target Company Context:
+- The candidate is interviewing at ${companyName}.
+- Draw directly from actual, real-world past interview questions asked at ${companyName} for this role.
+- Ground the question by referencing the target company's actual technical challenges or question style to build trust (e.g., 'A common question asked during ${companyName} interviews is...', '${companyName} interviewers frequently ask candidates to...'). Keep it highly realistic and legitimate.
+` : ''}
+
+Role: ${role}${companyString}
 ${jdContextString}
-Selected Topics to choose from:
+${rawJdString}
 ${topicStrings}
 ${previousQuestionsString}
+${codingOnlyString}
 
 Return ONLY a valid JSON object with this EXACT structure:
 {
