@@ -446,10 +446,10 @@ export default function NewInterviewPage() {
               {setupMode === 'manual' ? '4' : '5'}. Practice Mode
             </h2>
             <div className="flex flex-wrap gap-3 mb-6">
-              {['Standard', 'Coding Only'].map((mode) => (
+              {(['Standard', 'Coding Only'] as const).map((mode) => (
                 <button
                   key={mode}
-                  onClick={() => setPracticeMode(mode as any)}
+                  onClick={() => setPracticeMode(mode)}
                   className={`px-6 py-3 rounded-full text-sm font-medium transition-colors border ${
                     practiceMode === mode
                       ? 'bg-[#E1E0CC] text-black border-[#E1E0CC]' 
