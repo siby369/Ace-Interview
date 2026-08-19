@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 
-async function getCustomApiKey(): Promise<string | null> {
+export async function getCustomApiKey(): Promise<string | null> {
   try {
     const cookieStore = await cookies();
     const cookieKey = cookieStore.get('groq_api_key')?.value;
