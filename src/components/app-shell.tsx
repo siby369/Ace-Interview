@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {!isLandingPage && <GradientBackground />}
 
       {/* Global Noise Overlay */}
-      <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.7] mix-blend-overlay" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
+      <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.7] mix-blend-overlay" style={{ backgroundImage: 'url("/noise.svg")' }} />
 
       {/* Top Left Logo (Hidden on landing page and interview sessions) */}
       {!isLandingPage && !isInterviewSession && (

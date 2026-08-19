@@ -47,6 +47,12 @@ export function SettingsPanel() {
           setApiKey(profile.custom_api_key || '');
         }
       }
+      
+      const cookies = document.cookie.split(';');
+      const apiKeyCookie = cookies.find(c => c.trim().startsWith('groq_api_key='));
+      if (apiKeyCookie && !apiKey) {
+        setApiKey(apiKeyCookie.split('=')[1]);
+      }
     }
     if (open) {
       loadProfile();
@@ -66,6 +72,12 @@ export function SettingsPanel() {
           .eq('id', user.id);
 
         if (error) throw error;
+      }
+      
+      if (apiKey.trim()) {
+        document.cookie = `groq_api_key=${apiKey.trim()}; path=/; max-age=31536000`; // 1 year
+      } else {
+        document.cookie = 'groq_api_key=; path=/; max-age=0';
       }
       setOpen(false);
     } catch (err) {

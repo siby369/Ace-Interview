@@ -148,7 +148,17 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
           });
         }
         if (cancelled) return;
-        setAllQuestions([firstQuestion]);
+        if (firstQuestion.error) {
+           throw new Error(firstQuestion.error);
+        }
+        
+        // Since we check for error above, it is safe to cast or assert it's a valid question.
+        // Also it needs `question` property which is no longer strictly non-optional.
+        if (!firstQuestion.question) {
+           throw new Error('Question generation returned empty question.');
+        }
+        
+        setAllQuestions([firstQuestion as any]);
         loadingTargetRef.current = 1;
       } catch (error: any) {
         console.error('Failed to fetch initial question:', error);
@@ -159,7 +169,7 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
           } else if (error.message === 'UNAUTHENTICATED') {
             setInitialQuestionError('UNAUTHENTICATED');
           } else {
-            setInitialQuestionError('We could not prepare your first question right now. Please try again.');
+            setInitialQuestionError(error.message || 'We could not prepare your first question right now. Please try again.');
           }
         }
       } finally {
@@ -212,7 +222,9 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
       }
 
       questionPromise.then(newQ => {
-        setAllQuestions(prev => [...prev, newQ]);
+        if (newQ.error) throw new Error(newQ.error);
+        if (!newQ.question) throw new Error('Question generation returned empty question.');
+        setAllQuestions(prev => [...prev, newQ as any]);
         setIsGeneratingNext(false);
       }).catch(err => {
         console.error("Failed to fetch next question:", err);
@@ -220,6 +232,8 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
           setInitialQuestionError('OUT_OF_TOKENS');
         } else if (err.message === 'UNAUTHENTICATED') {
           setInitialQuestionError('UNAUTHENTICATED');
+        } else {
+          setInitialQuestionError(err.message || 'We could not prepare your next question right now.');
         }
         loadingTargetRef.current = allQuestions.length;
         setIsGeneratingNext(false);

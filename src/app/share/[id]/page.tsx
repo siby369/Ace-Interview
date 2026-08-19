@@ -37,7 +37,7 @@ export default async function SharePage({ params }: SharePageProps) {
   return (
     <div className="relative min-h-screen text-[#E1E0CC] bg-[#080808]">
       {/* Noise overlay */}
-      <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.7] mix-blend-overlay" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
+      <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.7] mix-blend-overlay" style={{ backgroundImage: 'url("/noise.svg")' }} />
 
       <div className="relative z-10 p-6 sm:p-8 lg:p-10 w-full max-w-5xl mx-auto space-y-12">
         {/* Header */}

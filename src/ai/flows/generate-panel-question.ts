@@ -29,8 +29,9 @@ const GeneratePanelQuestionInputSchema = z.object({
 export type GeneratePanelQuestionInput = z.infer<typeof GeneratePanelQuestionInputSchema>;
 
 const GeneratePanelQuestionOutputSchema = z.object({
-  question: z.string().describe('The interview question.'),
-  requiresTyping: z.boolean().describe('Whether the candidate should type their answer (e.g. for coding questions).'),
+  question: z.string().optional(),
+  requiresTyping: z.boolean().optional(),
+  error: z.string().optional()
 });
 
 export type GeneratePanelQuestionOutput = z.infer<typeof GeneratePanelQuestionOutputSchema>;
@@ -104,8 +105,8 @@ Return ONLY a valid JSON object with this EXACT structure:
 
     const json = JSON.parse(content);
     return GeneratePanelQuestionOutputSchema.parse(json);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating panel question:', error);
-    throw error;
+    return { error: error.message || 'Failed to generate question' };
   }
 }

@@ -23,8 +23,9 @@ const GenerateSingleInterviewQuestionInputSchema = z.object({
 export type GenerateSingleInterviewQuestionInput = z.infer<typeof GenerateSingleInterviewQuestionInputSchema>;
 
 const GenerateSingleInterviewQuestionOutputSchema = z.object({
-  question: z.string().describe('The interview question.'),
-  requiresTyping: z.boolean().describe('Whether the question requires the user to type an answer.')
+  question: z.string().optional(),
+  requiresTyping: z.boolean().optional(),
+  error: z.string().optional()
 });
 
 export type GenerateSingleInterviewQuestionOutput = z.infer<typeof GenerateSingleInterviewQuestionOutputSchema>;
@@ -102,8 +103,8 @@ Return ONLY a valid JSON object with this EXACT structure:
 
     const json = JSON.parse(content);
     return GenerateSingleInterviewQuestionOutputSchema.parse(json);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating single interview question:', error);
-    throw error;
+    return { error: error.message || 'Failed to generate question' };
   }
 }

@@ -280,7 +280,7 @@ export default function DashboardPage() {
     return (
       <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#080808] text-[#E1E0CC] overflow-hidden">
         {/* Noise overlay */}
-        <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.7] mix-blend-overlay" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
+        <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.7] mix-blend-overlay" />
         <div className="flex flex-col items-center gap-4 text-[#E1E0CC]/40 animate-pulse relative z-10">
           <div className="w-4 h-4 rounded-full bg-[#E1E0CC]/50 animate-ping" />
           <p className="text-sm font-light tracking-wider">Syncing workspace...</p>
@@ -293,7 +293,7 @@ export default function DashboardPage() {
     return (
       <div className="fixed inset-0 z-40 text-[#E1E0CC] bg-[#080808] flex items-center justify-center p-4 overflow-hidden">
         {/* Noise overlay */}
-        <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.7] mix-blend-overlay" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
+        <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.7] mix-blend-overlay" style={{ backgroundImage: 'url("/noise.svg")' }} />
         
         <div className="relative z-10 max-w-lg w-full p-8 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-md shadow-2xl space-y-8 animate-in fade-in-50 duration-700">
           <div className="text-center space-y-2">

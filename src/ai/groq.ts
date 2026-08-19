@@ -1,5 +1,11 @@
+import { cookies } from 'next/headers';
+
 async function getCustomApiKey(): Promise<string | null> {
   try {
+    const cookieStore = await cookies();
+    const cookieKey = cookieStore.get('groq_api_key')?.value;
+    if (cookieKey) return cookieKey;
+    
     const { createClient } = await import('@/utils/supabase/server');
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -13,7 +19,7 @@ async function getCustomApiKey(): Promise<string | null> {
       
     return profile?.custom_api_key || null;
   } catch (error) {
-    console.error('Error fetching custom API key from Supabase:', error);
+    console.error('Error fetching custom API key:', error);
     return null;
   }
 }
