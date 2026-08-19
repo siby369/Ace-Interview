@@ -55,7 +55,7 @@ Return ONLY a valid JSON object:
 
   const completion = await fastGroq.chat.completions.create({
     messages: [{ role: 'user', content: prompt }],
-    model: 'llama3-8b-8192',
+    model: 'openai/gpt-oss-20b',
     response_format: { type: 'json_object' },
   });
 

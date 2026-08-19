@@ -138,7 +138,7 @@ export async function createFastTextCompletion(params: CompletionParams) {
   const textKey = process.env.TEXT_API_KEY;
   const textBaseUrl = process.env.TEXT_BASE_URL || 'https://openrouter.ai/api/v1';
 
-  const primaryModel = process.env.GROQ_TEXT_MODEL || 'llama3-8b-8192';
+  const primaryModel = process.env.GROQ_TEXT_MODEL || 'openai/gpt-oss-20b';
   const fallbackModel = process.env.TEXT_MODEL || 'openrouter/free';
 
   const errors: string[] = [];
