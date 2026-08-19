@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { getCustomApiKey } from '@/ai/groq';
 
 const TranscribeAudioInputSchema = z.object({
   audioDataUri: z
@@ -11,92 +12,62 @@ const TranscribeAudioInputSchema = z.object({
 export type TranscribeAudioInput = z.infer<typeof TranscribeAudioInputSchema>;
 
 const TranscribeAudioOutputSchema = z.object({
-  text: z.string().describe('The transcribed text from the audio.'),
+  text: z.string().optional(),
+  error: z.string().optional()
 });
 export type TranscribeAudioOutput = z.infer<typeof TranscribeAudioOutputSchema>;
 
 export async function transcribeAudio(input: TranscribeAudioInput): Promise<TranscribeAudioOutput> {
-  const { audioDataUri, languageCode } = input;
-  
-  // Extract base64 payload
-  const match = audioDataUri.match(/^data:(audio\/[a-zA-Z0-9.-]+);base64,(.+)$/);
-  if (!match) {
-    throw new Error('Invalid audio data URI format');
-  }
-  
-  const base64Data = match[2];
-  const buffer = Buffer.from(base64Data, 'base64');
-  
-  const assemblyApiKey = process.env.AUDIO_API_KEY;
-  if (!assemblyApiKey || assemblyApiKey === 'localmode') {
-      throw new Error("AUDIO_API_KEY is not set or invalid for AssemblyAI.");
-  }
-  
-  const baseUrl = process.env.AUDIO_BASE_URL || 'https://api.assemblyai.com/v2';
-  
-  // 1. Upload audio to AssemblyAI
-  const uploadResponse = await fetch(`${baseUrl}/upload`, {
-    method: 'POST',
-    headers: {
-      'Authorization': assemblyApiKey,
-      'Content-Type': 'application/octet-stream'
-    },
-    body: buffer
-  });
-  
-  if (!uploadResponse.ok) {
-    throw new Error(`Failed to upload audio to AssemblyAI: ${uploadResponse.statusText}`);
-  }
-  
-  const uploadResult = await uploadResponse.json();
-  const uploadUrl = uploadResult.upload_url;
-  
-  // 2. Request transcription
-  // Convert language codes like 'en-US' to 'en' (AssemblyAI expects 2-letter codes)
-  const shortLangCode = languageCode.split('-')[0];
-  
-  const transcriptResponse = await fetch(`${baseUrl}/transcript`, {
-    method: 'POST',
-    headers: {
-      'Authorization': assemblyApiKey,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ 
-      audio_url: uploadUrl,
-      language_code: shortLangCode,
-      speech_models: ["universal-3-pro", "universal-2"]
-    })
-  });
-  
-  if (!transcriptResponse.ok) {
-    throw new Error(`Failed to request transcript from AssemblyAI: ${transcriptResponse.statusText}`);
-  }
-  
-  const transcriptResult = await transcriptResponse.json();
-  const transcriptId = transcriptResult.id;
-  
-  // 3. Poll for completion
-  let status = transcriptResult.status;
-  let text = '';
-  
-  while (status !== 'completed' && status !== 'error') {
-    await new Promise(resolve => setTimeout(resolve, 2000));
+  try {
+    const { audioDataUri, languageCode } = input;
     
-    const pollResponse = await fetch(`${baseUrl}/transcript/${transcriptId}`, {
-      headers: {
-        'Authorization': assemblyApiKey
-      }
-    });
-    
-    const pollResult = await pollResponse.json();
-    status = pollResult.status;
-    
-    if (status === 'completed') {
-      text = pollResult.text;
-    } else if (status === 'error') {
-      throw new Error(`AssemblyAI Transcription error: ${pollResult.error}`);
+    // Extract base64 payload
+    const match = audioDataUri.match(/^data:(audio\/[a-zA-Z0-9.-]+);base64,(.+)$/);
+    if (!match) {
+      throw new Error('Invalid audio data URI format');
     }
+    
+    const mimeType = match[1];
+    const base64Data = match[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    const groqApiKey = await getCustomApiKey();
+    if (!groqApiKey) {
+      return { error: 'Groq API Key is not set. Please open Settings and enter your Groq API Key.' };
+    }
+
+    const blob = new Blob([buffer], { type: mimeType });
+    const formData = new FormData();
+    // Groq expects a filename
+    let extension = 'webm';
+    if (mimeType.includes('mp4')) extension = 'mp4';
+    if (mimeType.includes('mp3')) extension = 'mp3';
+    
+    formData.append('file', blob, `audio.${extension}`);
+    formData.append('model', 'whisper-large-v3-turbo');
+    formData.append('response_format', 'json');
+    if (languageCode) {
+      formData.append('language', languageCode.split('-')[0]); // Use 2-letter code
+    }
+
+    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+       const text = await response.text();
+       console.error('Groq transcription failed:', text);
+       return { error: 'Failed to transcribe audio' };
+    }
+
+    const result = await response.json();
+    return { text: result.text || '' };
+  } catch (err: any) {
+    console.error('Transcription error:', err);
+    return { error: err.message || 'Unknown transcription error' };
   }
-  
-  return { text };
 }

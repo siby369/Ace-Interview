@@ -339,11 +339,14 @@ export function InterviewClientView({ initialInterviewData, role, company, perso
           setQuestionAudioMap(prev => ({ ...prev, [currentQuestionIndex]: base64Audio }));
           setIsTranscribing(true);
           try {
-            const { text } = await transcribeAudio({ audioDataUri: base64Audio, languageCode: selectedLanguage });
+            const { text, error } = await transcribeAudio({ audioDataUri: base64Audio, languageCode: selectedLanguage });
+            if (error) {
+              throw new Error(error);
+            }
             const currentAnswer = form.getValues('answer');
-            form.setValue('answer', (currentAnswer ? currentAnswer + '\n' : '') + text);
+            form.setValue('answer', (currentAnswer ? currentAnswer + '\n' : '') + (text || ''));
             // Count filler words
-            const lowerText = text.toLowerCase();
+            const lowerText = (text || '').toLowerCase();
             const found: string[] = [];
             let count = 0;
             FILLER_WORDS.forEach(fw => {
